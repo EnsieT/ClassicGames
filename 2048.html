@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>2048 — Classic Games</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0f0f1a;color:#e0e0e0;font-family:'Segoe UI','Consolas',monospace;display:flex;justify-content:center;align-items:center;min-height:100vh;touch-action:none}
+    #app{display:flex;flex-direction:column;align-items:center;gap:14px;padding:20px}
+    .back-link{align-self:flex-start;color:#00e5ff;text-decoration:none;font-size:.85rem}.back-link:hover{color:#fff}
+    h1{font-size:2rem;letter-spacing:.5rem;color:#00e5ff;text-shadow:0 0 12px #00e5ff88}
+    #info{display:flex;gap:24px;font-size:1rem}#info span{color:#888}#info strong{color:#fff}
+    #grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;background:#1a1a2e;padding:8px;border-radius:8px;border:2px solid #333;width:340px;height:340px}
+    .tile{border-radius:6px;display:flex;justify-content:center;align-items:center;font-size:1.5rem;font-weight:700;transition:all .12s;background:#252542;color:#888}
+    .tile[data-v="2"]{background:#2a3a4a;color:#00e5ff}
+    .tile[data-v="4"]{background:#2a4a4a;color:#00e5ff}
+    .tile[data-v="8"]{background:#3a4a2a;color:#f0a000}
+    .tile[data-v="16"]{background:#4a3a2a;color:#f0a000}
+    .tile[data-v="32"]{background:#4a2a2a;color:#f06292}
+    .tile[data-v="64"]{background:#5a2a2a;color:#f44336}
+    .tile[data-v="128"]{background:#4a4a1a;color:#f0f000;font-size:1.3rem}
+    .tile[data-v="256"]{background:#5a5a1a;color:#f0f000;font-size:1.3rem}
+    .tile[data-v="512"]{background:#5a4a0a;color:#ff9800;font-size:1.3rem}
+    .tile[data-v="1024"]{background:#6a3a0a;color:#ff5722;font-size:1.1rem}
+    .tile[data-v="2048"]{background:#00e5ff;color:#111;font-size:1.1rem;box-shadow:0 0 20px #00e5ff88}
+    #status{font-size:1.1rem;min-height:1.4em;text-align:center}
+    button.action{background:#1a1a2e;border:2px solid #333;color:#ccc;padding:8px 20px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.85rem;transition:border-color .2s}
+    button.action:hover{border-color:#00e5ff;color:#fff}
+    #controls{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:.72rem;color:#666}
+    #controls span{background:#1a1a2e;padding:4px 10px;border-radius:4px;border:1px solid #333}
+    .hs{background:#1a1a2e;border:2px solid #333;border-radius:6px;padding:10px 20px;text-align:center}
+    .hs h3{font-size:.75rem;letter-spacing:.15rem;color:#888;margin-bottom:6px}
+    .hs ol{text-align:left;padding-left:18px;font-size:.8rem;line-height:1.7;color:#ccc}
+    .hs ol li::marker{color:#00e5ff}
+    details.rules{background:#1a1a2e;border:1px solid #333;border-radius:8px;padding:0;margin:8px auto;max-width:420px;width:100%;font-size:.78rem;color:#aaa}
+    details.rules summary{cursor:pointer;padding:8px 14px;color:#888;font-size:.8rem;letter-spacing:.08rem;list-style:none;user-select:none}
+    details.rules summary::-webkit-details-marker{display:none}
+    details.rules summary::before{content:"▸ ";color:#00e5ff}details.rules[open] summary::before{content:"▾ "}
+    details.rules .rules-body{padding:4px 14px 12px}details.rules .rules-body h4{color:#00e5ff;font-size:.75rem;margin:8px 0 4px;letter-spacing:.06rem}
+    details.rules .rules-body ul{padding-left:16px;margin:0}details.rules .rules-body li{margin:2px 0;line-height:1.5}
+    details.rules .rules-body kbd{background:#252542;border:1px solid #444;border-radius:3px;padding:1px 5px;font-size:.72rem;color:#ccc}
+  </style>
+</head>
+<body>
+  <div id="app">
+    <a href="index.html" class="back-link">← Back to Games</a>
+    <h1>2048</h1>
+    <details class="rules"><summary>Rules &amp; Controls</summary><div class="rules-body">
+      <h4>RULES</h4>
+      <ul>
+        <li>Slide tiles in any direction to merge matching numbers</li>
+        <li>Two tiles with the same number merge into one (e.g. 2+2=4)</li>
+        <li>Reach the 2048 tile to win — keep going for a higher score!</li>
+        <li>Game over when no more moves are possible</li>
+      </ul>
+      <h4>CONTROLS</h4>
+      <ul>
+        <li><kbd>←</kbd> <kbd>↑</kbd> <kbd>↓</kbd> <kbd>→</kbd> Slide tiles</li>
+        <li>Swipe on mobile/touch devices</li>
+      </ul>
+    </div></details>
+    <div id="info">
+      <span>Score: <strong id="score">0</strong></span>
+      <span>Best: <strong id="best">0</strong></span>
+    </div>
+    <div id="grid"></div>
+    <p id="status"></p>
+    <button class="action" id="new-game">New Game</button>
+    <div class="hs"><h3>HIGH SCORES</h3><ol id="hs-list"></ol></div>
+    <div id="controls">
+      <span>← → ↑ ↓ Slide tiles</span>
+    </div>
+  </div>
+<script>
+(()=>{
+  const SIZE=4,KEY="2048_hs",MAX_HS=5;
+  const gridEl=document.getElementById("grid"),scoreEl=document.getElementById("score"),bestEl=document.getElementById("best"),statusEl=document.getElementById("status"),hsList=document.getElementById("hs-list");
+  let grid,score,won,over;
+
+  function loadHS(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch{return[]}}
+  function saveHS(s){localStorage.setItem(KEY,JSON.stringify(s))}
+  function addHS(v){const s=loadHS();s.push(v);s.sort((a,b)=>b-a);if(s.length>MAX_HS)s.length=MAX_HS;saveHS(s);renderHS()}
+  function renderHS(){const s=loadHS();hsList.innerHTML="";if(!s.length){hsList.innerHTML="<li style='color:#555'>No scores yet</li>";return}s.forEach(v=>{const li=document.createElement("li");li.textContent=v.toLocaleString();hsList.appendChild(li)})}
+  function topHS(){const s=loadHS();return s.length?s[0]:0}
+
+  function empty(){const e=[];for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++)if(!grid[r][c])e.push([r,c]);return e}
+  function spawn(){const e=empty();if(!e.length)return;const[r,c]=e[Math.floor(Math.random()*e.length)];grid[r][c]=Math.random()<.9?2:4}
+
+  function render(){
+    gridEl.innerHTML="";
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      const d=document.createElement("div");d.className="tile";
+      const v=grid[r][c];if(v){d.textContent=v;d.dataset.v=v}
+      gridEl.appendChild(d);
+    }
+    scoreEl.textContent=score.toLocaleString();bestEl.textContent=Math.max(score,topHS()).toLocaleString();
+  }
+
+  function slide(row){
+    let a=row.filter(v=>v),merged=false;
+    for(let i=0;i<a.length-1;i++){if(a[i]===a[i+1]){a[i]*=2;score+=a[i];a.splice(i+1,1);merged=true;if(a[i]===2048&&!won){won=true;statusEl.textContent="🎉 You reached 2048! Keep going!";statusEl.style.color="#00e5ff"}}}
+    while(a.length<SIZE)a.push(0);
+    return{row:a,changed:row.some((v,i)=>v!==a[i])};
+  }
+
+  function move(dir){
+    if(over)return;let changed=false;
+    if(dir==="left")for(let r=0;r<SIZE;r++){const res=slide([...grid[r]]);if(res.changed){grid[r]=res.row;changed=true}}
+    if(dir==="right")for(let r=0;r<SIZE;r++){const res=slide([...grid[r]].reverse());if(res.changed){grid[r]=res.row.reverse();changed=true}}
+    if(dir==="up")for(let c=0;c<SIZE;c++){const col=[];for(let r=0;r<SIZE;r++)col.push(grid[r][c]);const res=slide(col);if(res.changed){for(let r=0;r<SIZE;r++)grid[r][c]=res.row[r];changed=true}}
+    if(dir==="down")for(let c=0;c<SIZE;c++){const col=[];for(let r=0;r<SIZE;r++)col.push(grid[r][c]);const res=slide(col.reverse());if(res.changed){const rev=res.row.reverse();for(let r=0;r<SIZE;r++)grid[r][c]=rev[r];changed=true}}
+    if(changed){spawn();render();checkOver()}
+  }
+
+  function canMove(){
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      if(!grid[r][c])return true;
+      if(c<SIZE-1&&grid[r][c]===grid[r][c+1])return true;
+      if(r<SIZE-1&&grid[r][c]===grid[r+1][c])return true;
+    }
+    return false;
+  }
+
+  function checkOver(){if(!canMove()){over=true;statusEl.textContent="Game Over!";statusEl.style.color="#f44336";addHS(score);bestEl.textContent=topHS().toLocaleString()}}
+
+  function init(){
+    grid=Array.from({length:SIZE},()=>Array(SIZE).fill(0));score=0;won=false;over=false;statusEl.textContent="";
+    spawn();spawn();render();
+  }
+
+  document.addEventListener("keydown",e=>{
+    if(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(e.key)){e.preventDefault();move({ArrowLeft:"left",ArrowRight:"right",ArrowUp:"up",ArrowDown:"down"}[e.key])}
+  });
+
+  // Touch support
+  let tx,ty;
+  document.addEventListener("touchstart",e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY});
+  document.addEventListener("touchend",e=>{
+    const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;
+    if(Math.abs(dx)<30&&Math.abs(dy)<30)return;
+    if(Math.abs(dx)>Math.abs(dy))move(dx>0?"right":"left");else move(dy>0?"down":"up");
+  });
+
+  document.getElementById("new-game").addEventListener("click",init);
+  renderHS();bestEl.textContent=topHS().toLocaleString();init();
+})();
+</script>
+</body>
+</html>

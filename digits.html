@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Digits — Classic Games</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0f0f1a;color:#e0e0e0;font-family:'Segoe UI','Consolas',monospace;display:flex;justify-content:center;align-items:center;min-height:100vh}
+    #app{display:flex;flex-direction:column;align-items:center;gap:16px;padding:20px;max-width:520px;width:100%}
+    .back-link{align-self:flex-start;color:#00e5ff;text-decoration:none;font-size:.85rem}.back-link:hover{color:#fff}
+    h1{font-size:2rem;letter-spacing:.5rem;color:#00e5ff;text-shadow:0 0 12px #00e5ff88}
+    #puzzle-info{font-size:.8rem;color:#666}
+
+    /* Target */
+    #target-wrap{text-align:center}
+    #target-label{font-size:.75rem;color:#888;letter-spacing:.15rem;margin-bottom:4px}
+    #target{font-size:3rem;font-weight:700;color:#00e5ff;text-shadow:0 0 16px #00e5ff66}
+    #diff-badge{display:inline-block;font-size:.6rem;padding:2px 8px;border-radius:20px;margin-top:4px;letter-spacing:.06rem}
+    .diff-easy{background:#4caf5022;color:#4caf50;border:1px solid #4caf5044}
+    .diff-medium{background:#f0a00022;color:#f0a000;border:1px solid #f0a00044}
+    .diff-hard{background:#f4433622;color:#f44336;border:1px solid #f4433644}
+
+    /* Numbers */
+    #numbers{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+    .num-btn{min-width:60px;padding:12px 10px;font-size:1.2rem;font-weight:700;background:#1a1a2e;border:2px solid #333;border-radius:8px;color:#fff;cursor:pointer;transition:border-color .15s,background .15s,transform .1s;font-family:inherit}
+    .num-btn:hover:not(.used):not(.selected){border-color:#555;background:#252542}
+    .num-btn.selected{border-color:#00e5ff;background:#00e5ff22;transform:scale(1.06);box-shadow:0 0 12px #00e5ff33}
+    .num-btn.used{opacity:.3;cursor:default;text-decoration:line-through}
+
+    /* Operators */
+    #operators{display:flex;gap:8px;justify-content:center}
+    .op-btn{width:50px;height:50px;font-size:1.4rem;font-weight:700;background:#1a1a2e;border:2px solid #333;border-radius:50%;color:#ccc;cursor:pointer;transition:border-color .15s,background .15s;font-family:inherit;display:flex;justify-content:center;align-items:center}
+    .op-btn:hover{border-color:#f0a000;color:#f0a000}
+    .op-btn.active{border-color:#f0a000;background:#f0a00022;color:#f0a000}
+    .op-btn:disabled{opacity:.3;cursor:default}
+
+    /* Expression preview */
+    #expression{min-height:2rem;font-size:1.1rem;color:#888;text-align:center}
+    #expression .val{color:#fff;font-weight:700}
+    #expression .op{color:#f0a000;font-weight:700;margin:0 6px}
+
+    /* History */
+    #history{width:100%;max-width:360px}
+    #history h3{font-size:.7rem;letter-spacing:.15rem;color:#555;margin-bottom:6px;text-align:center}
+    .hist-item{display:flex;justify-content:center;gap:6px;font-size:.85rem;color:#888;padding:3px 0}
+    .hist-item .val{color:#ccc}.hist-item .op{color:#f0a000}.hist-item .eq{color:#4caf50}
+
+    /* Status / result */
+    #status{font-size:1.1rem;min-height:1.4em;text-align:center}
+    .star{color:#f0a000}
+
+    /* Buttons */
+    .btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+    button.action{background:#1a1a2e;border:2px solid #333;color:#ccc;padding:8px 18px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.82rem;transition:border-color .2s}
+    button.action:hover{border-color:#00e5ff;color:#fff}
+    button.action.primary{background:#00e5ff;color:#111;border-color:#00e5ff;font-weight:700}
+    button.action.primary:hover{background:#00bcd4}
+
+    /* Progress bar */
+    #progress{width:100%;max-width:360px}
+    #progress-label{font-size:.7rem;color:#555;text-align:center;margin-bottom:4px}
+    #progress-bar{height:6px;background:#1a1a2e;border-radius:3px;overflow:hidden;border:1px solid #333}
+    #progress-fill{height:100%;background:linear-gradient(90deg,#00e5ff,#4caf50);border-radius:3px;transition:width .3s}
+
+    /* Stars summary */
+    #summary{text-align:center}
+    #summary h2{font-size:1.4rem;color:#00e5ff;margin-bottom:8px}
+    #summary .stars-total{font-size:2rem;color:#f0a000;margin-bottom:12px}
+    details.rules{background:#1a1a2e;border:1px solid #333;border-radius:8px;padding:0;margin:8px auto;max-width:420px;width:100%;font-size:.78rem;color:#aaa}
+    details.rules summary{cursor:pointer;padding:8px 14px;color:#888;font-size:.8rem;letter-spacing:.08rem;list-style:none;user-select:none}
+    details.rules summary::-webkit-details-marker{display:none}
+    details.rules summary::before{content:"▸ ";color:#00e5ff}details.rules[open] summary::before{content:"▾ "}
+    details.rules .rules-body{padding:4px 14px 12px}details.rules .rules-body h4{color:#00e5ff;font-size:.75rem;margin:8px 0 4px;letter-spacing:.06rem}
+    details.rules .rules-body ul{padding-left:16px;margin:0}details.rules .rules-body li{margin:2px 0;line-height:1.5}
+    details.rules .rules-body kbd{background:#252542;border:1px solid #444;border-radius:3px;padding:1px 5px;font-size:.72rem;color:#ccc}
+  </style>
+</head>
+<body>
+  <div id="app">
+    <a href="index.html" class="back-link">← Back to Games</a>
+    <h1>DIGITS</h1>
+    <details class="rules"><summary>Rules &amp; Controls</summary><div class="rules-body">
+      <h4>RULES</h4>
+      <ul>
+        <li>Combine the given numbers using +, −, ×, ÷ to reach the target</li>
+        <li>Select two numbers and an operator — the result replaces them</li>
+        <li>No fractions or negative results allowed</li>
+        <li>★★★ Exact match · ★★☆ Within 5 · ★☆☆ Within 15</li>
+      </ul>
+      <h4>CONTROLS</h4>
+      <ul>
+        <li><kbd>Click</kbd> a number → choose an operator → <kbd>Click</kbd> second number</li>
+        <li><kbd>Undo</kbd> to reverse the last step</li>
+        <li><kbd>Reset</kbd> to start the puzzle over</li>
+        <li><kbd>Submit Best</kbd> if you can't reach the exact target</li>
+      </ul>
+    </div></details>
+    <p id="puzzle-info">Puzzle 1 of 10</p>
+
+    <div id="target-wrap">
+      <p id="target-label">TARGET</p>
+      <p id="target">0</p>
+      <span id="diff-badge" class="diff-easy">EASY</span>
+    </div>
+
+    <div id="expression">&nbsp;</div>
+
+    <div id="numbers"></div>
+    <div id="operators">
+      <button class="op-btn" data-op="+">+</button>
+      <button class="op-btn" data-op="−">−</button>
+      <button class="op-btn" data-op="×">×</button>
+      <button class="op-btn" data-op="÷">÷</button>
+    </div>
+
+    <div id="history">
+      <h3>STEPS</h3>
+      <div id="hist-list"></div>
+    </div>
+
+    <p id="status"></p>
+
+    <div class="btn-row">
+      <button class="action" id="undo-btn">Undo</button>
+      <button class="action" id="reset-btn">Reset</button>
+      <button class="action primary hidden" id="next-btn">Next Puzzle →</button>
+    </div>
+
+    <div id="progress">
+      <p id="progress-label">Progress</p>
+      <div id="progress-bar"><div id="progress-fill" style="width:0%"></div></div>
+    </div>
+
+    <div id="summary" class="hidden">
+      <h2>ALL PUZZLES COMPLETE!</h2>
+      <div class="stars-total" id="total-stars"></div>
+      <p id="total-msg" style="color:#888"></p>
+      <button class="action primary" id="replay-btn" style="margin-top:12px">Play Again</button>
+    </div>
+  </div>
+
+<script>
+(()=>{
+  "use strict";
+
+  /* ── Puzzles: [target, [6 starting numbers], difficulty] ── */
+  const PUZZLES = [
+    { target: 23,  nums: [2, 3, 5, 7, 11, 1],   diff: "easy" },
+    { target: 50,  nums: [4, 6, 8, 10, 3, 1],    diff: "easy" },
+    { target: 97,  nums: [5, 10, 15, 3, 2, 7],   diff: "easy" },
+    { target: 135, nums: [25, 4, 7, 3, 8, 2],    diff: "medium" },
+    { target: 214, nums: [11, 15, 20, 3, 6, 2],  diff: "medium" },
+    { target: 307, nums: [25, 12, 7, 4, 3, 1],   diff: "medium" },
+    { target: 428, nums: [50, 8, 6, 3, 5, 2],    diff: "hard" },
+    { target: 539, nums: [75, 7, 11, 4, 2, 3],   diff: "hard" },
+    { target: 673, nums: [100, 6, 9, 5, 3, 2],   diff: "hard" },
+    { target: 821, nums: [100, 8, 11, 7, 3, 2],  diff: "hard" },
+    { target: 156, nums: [12, 13, 3, 4, 7, 1],   diff: "medium" },
+    { target: 462, nums: [50, 9, 8, 3, 7, 2],    diff: "hard" },
+  ];
+
+  /* ── DOM refs ── */
+  const puzzleInfoEl = document.getElementById("puzzle-info");
+  const targetEl     = document.getElementById("target");
+  const diffBadge    = document.getElementById("diff-badge");
+  const numbersEl    = document.getElementById("numbers");
+  const exprEl       = document.getElementById("expression");
+  const histList     = document.getElementById("hist-list");
+  const statusEl     = document.getElementById("status");
+  const undoBtn      = document.getElementById("undo-btn");
+  const resetBtn     = document.getElementById("reset-btn");
+  const nextBtn      = document.getElementById("next-btn");
+  const progressFill = document.getElementById("progress-fill");
+  const summaryEl    = document.getElementById("summary");
+  const totalStarsEl = document.getElementById("total-stars");
+  const totalMsgEl   = document.getElementById("total-msg");
+  const replayBtn    = document.getElementById("replay-btn");
+  const opBtns       = document.querySelectorAll(".op-btn");
+
+  /* ── State ── */
+  let puzzleIdx = 0;
+  let available = [];     // {id, value, used}
+  let history = [];       // [{a, op, b, result, aId, bId, newId}]
+  let selectedA = null;   // id of first operand
+  let selectedOp = null;  // "+" "−" "×" "÷"
+  let nextId = 0;
+  let solved = false;
+  let starsPerPuzzle = [];
+
+  /* ── Helpers ── */
+  function getAvailable() { return available.filter(n => !n.used); }
+
+  function calc(a, op, b) {
+    switch(op) {
+      case "+": return a + b;
+      case "−": return a - b;
+      case "×": return a * b;
+      case "÷": return (b !== 0 && a % b === 0) ? a / b : null;
+    }
+    return null;
+  }
+
+  function starsFor(target, best) {
+    const diff = Math.abs(target - best);
+    if (diff === 0) return 3;
+    if (diff <= 5) return 2;
+    if (diff <= 15) return 1;
+    return 0;
+  }
+
+  function starStr(n) { return "★".repeat(n) + "☆".repeat(3 - n); }
+
+  /* ── Render ── */
+  function render() {
+    const puzzle = PUZZLES[puzzleIdx];
+
+    // Info
+    puzzleInfoEl.textContent = `Puzzle ${puzzleIdx + 1} of ${PUZZLES.length}`;
+    targetEl.textContent = puzzle.target;
+    diffBadge.textContent = puzzle.diff.toUpperCase();
+    diffBadge.className = "diff-" + puzzle.diff;
+
+    // Numbers
+    numbersEl.innerHTML = "";
+    const avail = getAvailable();
+    for (const n of available) {
+      const btn = document.createElement("button");
+      btn.className = "num-btn";
+      btn.textContent = n.value;
+      if (n.used) { btn.classList.add("used"); }
+      else {
+        if (selectedA === n.id) btn.classList.add("selected");
+        btn.addEventListener("click", () => selectNumber(n.id));
+      }
+      numbersEl.appendChild(btn);
+    }
+
+    // Expression preview
+    if (selectedA !== null && selectedOp !== null) {
+      const aVal = available.find(n => n.id === selectedA).value;
+      exprEl.innerHTML = `<span class="val">${aVal}</span><span class="op">${selectedOp}</span><span style="color:#555">?</span>`;
+    } else if (selectedA !== null) {
+      const aVal = available.find(n => n.id === selectedA).value;
+      exprEl.innerHTML = `<span class="val">${aVal}</span> <span style="color:#555">choose operator</span>`;
+    } else {
+      exprEl.innerHTML = "&nbsp;";
+    }
+
+    // Operators
+    opBtns.forEach(btn => {
+      btn.classList.toggle("active", selectedOp === btn.dataset.op);
+      btn.disabled = selectedA === null || solved;
+    });
+
+    // History
+    histList.innerHTML = "";
+    for (const h of history) {
+      const div = document.createElement("div");
+      div.className = "hist-item";
+      div.innerHTML = `<span class="val">${h.a}</span><span class="op">${h.op}</span><span class="val">${h.b}</span><span class="eq">=</span><span class="val">${h.result}</span>`;
+      histList.appendChild(div);
+    }
+
+    // Progress
+    progressFill.style.width = `${((puzzleIdx + (solved ? 1 : 0)) / PUZZLES.length) * 100}%`;
+
+    // Check proximity
+    if (!solved) {
+      const closest = getAvailable().reduce((best, n) => Math.abs(n.value - puzzle.target) < Math.abs(best - puzzle.target) ? n.value : best, avail[0]?.value ?? 0);
+      const diff = Math.abs(closest - puzzle.target);
+      if (diff === 0) {
+        solved = true;
+        const stars = 3;
+        starsPerPuzzle[puzzleIdx] = stars;
+        statusEl.innerHTML = `<span class="star">${starStr(stars)}</span> Perfect! You hit ${puzzle.target} exactly!`;
+        statusEl.style.color = "#4caf50";
+        nextBtn.classList.remove("hidden");
+      }
+    }
+  }
+
+  /* ── Interaction ── */
+  function selectNumber(id) {
+    if (solved) return;
+    if (selectedA === null) {
+      selectedA = id;
+      selectedOp = null;
+      render();
+    } else if (selectedOp === null) {
+      // Switch selection
+      if (selectedA === id) { selectedA = null; }
+      else { selectedA = id; }
+      render();
+    } else {
+      // We have A, op — this is B
+      if (id === selectedA) return;
+      const aObj = available.find(n => n.id === selectedA);
+      const bObj = available.find(n => n.id === id);
+      const result = calc(aObj.value, selectedOp, bObj.value);
+      if (result === null || result < 0) {
+        statusEl.textContent = "Invalid operation (no fractions or negatives)";
+        statusEl.style.color = "#f44336";
+        setTimeout(() => { if (!solved) { statusEl.textContent = ""; statusEl.style.color = ""; } }, 1500);
+        return;
+      }
+      // Apply operation
+      aObj.used = true;
+      bObj.used = true;
+      const newId = nextId++;
+      available.push({ id: newId, value: result, used: false });
+      history.push({ a: aObj.value, op: selectedOp, b: bObj.value, result, aId: aObj.id, bId: bObj.id, newId });
+      selectedA = null;
+      selectedOp = null;
+      statusEl.textContent = "";
+      statusEl.style.color = "";
+      render();
+    }
+  }
+
+  opBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (selectedA === null || solved) return;
+      selectedOp = selectedOp === btn.dataset.op ? null : btn.dataset.op;
+      render();
+    });
+  });
+
+  /* ── Undo ── */
+  undoBtn.addEventListener("click", () => {
+    if (!history.length || solved) return;
+    const last = history.pop();
+    // Restore A and B, remove the result
+    const aObj = available.find(n => n.id === last.aId);
+    const bObj = available.find(n => n.id === last.bId);
+    if (aObj) aObj.used = false;
+    if (bObj) bObj.used = false;
+    available = available.filter(n => n.id !== last.newId);
+    selectedA = null; selectedOp = null;
+    render();
+  });
+
+  /* ── Reset ── */
+  resetBtn.addEventListener("click", () => initPuzzle());
+
+  /* ── Next ── */
+  nextBtn.addEventListener("click", () => {
+    if (puzzleIdx < PUZZLES.length - 1) {
+      // Record stars if not already
+      if (starsPerPuzzle[puzzleIdx] === undefined) {
+        const puzzle = PUZZLES[puzzleIdx];
+        const closest = getAvailable().reduce((best, n) => Math.abs(n.value - puzzle.target) < Math.abs(best - puzzle.target) ? n.value : best, 0);
+        starsPerPuzzle[puzzleIdx] = starsFor(puzzle.target, closest);
+      }
+      puzzleIdx++;
+      initPuzzle();
+    } else {
+      // All done — show summary
+      showSummary();
+    }
+  });
+
+  /* ── Submit (accept current closest without exact match) ── */
+  function submitCurrent() {
+    if (solved) return;
+    const puzzle = PUZZLES[puzzleIdx];
+    const avail = getAvailable();
+    const closest = avail.reduce((best, n) => Math.abs(n.value - puzzle.target) < Math.abs(best - puzzle.target) ? n.value : best, avail[0]?.value ?? 0);
+    const stars = starsFor(puzzle.target, closest);
+    starsPerPuzzle[puzzleIdx] = stars;
+    solved = true;
+    if (stars === 3) {
+      statusEl.innerHTML = `<span class="star">${starStr(stars)}</span> Perfect!`;
+      statusEl.style.color = "#4caf50";
+    } else if (stars > 0) {
+      statusEl.innerHTML = `<span class="star">${starStr(stars)}</span> Close! Best: ${closest} (off by ${Math.abs(closest - puzzle.target)})`;
+      statusEl.style.color = "#f0a000";
+    } else {
+      statusEl.innerHTML = `<span class="star">${starStr(stars)}</span> Best: ${closest} (off by ${Math.abs(closest - puzzle.target)})`;
+      statusEl.style.color = "#f44336";
+    }
+    nextBtn.classList.remove("hidden");
+    render();
+  }
+
+  /* ── Summary ── */
+  function showSummary() {
+    document.getElementById("target-wrap").style.display = "none";
+    numbersEl.style.display = "none";
+    document.getElementById("operators").style.display = "none";
+    document.getElementById("history").style.display = "none";
+    exprEl.style.display = "none";
+    statusEl.style.display = "none";
+    document.querySelector(".btn-row").style.display = "none";
+    const total = starsPerPuzzle.reduce((s, v) => s + v, 0);
+    const max = PUZZLES.length * 3;
+    totalStarsEl.textContent = starStr(3) + " " + total + " / " + max;
+    totalMsgEl.textContent = total === max ? "Flawless! Every puzzle solved perfectly!" : `Great effort! You earned ${total} out of ${max} stars.`;
+    summaryEl.classList.remove("hidden");
+  }
+
+  replayBtn.addEventListener("click", () => {
+    document.getElementById("target-wrap").style.display = "";
+    numbersEl.style.display = "";
+    document.getElementById("operators").style.display = "";
+    document.getElementById("history").style.display = "";
+    exprEl.style.display = "";
+    statusEl.style.display = "";
+    document.querySelector(".btn-row").style.display = "";
+    summaryEl.classList.add("hidden");
+    puzzleIdx = 0;
+    starsPerPuzzle = [];
+    initPuzzle();
+  });
+
+  /* ── Init puzzle ── */
+  function initPuzzle() {
+    const puzzle = PUZZLES[puzzleIdx];
+    available = puzzle.nums.map((v, i) => ({ id: i, value: v, used: false }));
+    nextId = puzzle.nums.length;
+    history = [];
+    selectedA = null;
+    selectedOp = null;
+    solved = false;
+    statusEl.textContent = "";
+    statusEl.style.color = "";
+    nextBtn.classList.add("hidden");
+    render();
+  }
+
+  /* ── Add a "Submit" button for when you can't reach exact ── */
+  const submitBtn = document.createElement("button");
+  submitBtn.className = "action";
+  submitBtn.textContent = "Submit Best";
+  submitBtn.addEventListener("click", submitCurrent);
+  document.querySelector(".btn-row").insertBefore(submitBtn, nextBtn);
+
+  /* ── Hidden utility class ── */
+  const style = document.createElement("style");
+  style.textContent = ".hidden{display:none!important}";
+  document.head.appendChild(style);
+
+  initPuzzle();
+})();
+</script>
+</body>
+</html>

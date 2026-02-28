@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Pong — Classic Games</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0f0f1a;color:#e0e0e0;font-family:'Segoe UI','Consolas',monospace;display:flex;justify-content:center;align-items:center;min-height:100vh}
+    #app{display:flex;flex-direction:column;align-items:center;gap:14px;padding:20px}
+    .back-link{align-self:flex-start;color:#00e5ff;text-decoration:none;font-size:.85rem}.back-link:hover{color:#fff}
+    h1{font-size:2rem;letter-spacing:.5rem;color:#00e5ff;text-shadow:0 0 12px #00e5ff88}
+    #scoreboard{display:flex;gap:40px;font-size:1.6rem;font-weight:700}
+    .p1{color:#00e5ff}.p2{color:#f06292}
+    canvas{border:3px solid #00e5ff;border-radius:4px;background:#111;box-shadow:0 0 20px #00e5ff44;display:block}
+    #wrap{position:relative}
+    .overlay{position:absolute;inset:0;background:rgba(0,0,0,.75);display:flex;justify-content:center;align-items:center;border-radius:4px;z-index:10;flex-direction:column;gap:12px}
+    .overlay.hidden{display:none}
+    .overlay h2{font-size:1.6rem;color:#00e5ff}.overlay p{color:#ccc;font-size:.95rem;animation:blink 1.2s infinite}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+    #controls{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:.72rem;color:#666}
+    #controls span{background:#1a1a2e;padding:4px 10px;border-radius:4px;border:1px solid #333}
+    #settings{display:flex;gap:12px;align-items:center;font-size:.8rem;color:#888}
+    #settings label{display:flex;align-items:center;gap:4px}
+    #settings input{width:50px;background:#1a1a2e;border:1px solid #333;color:#fff;padding:2px 6px;border-radius:4px;text-align:center;font-family:inherit}
+    details.rules{background:#1a1a2e;border:1px solid #333;border-radius:8px;padding:0;margin:8px auto;max-width:420px;width:100%;font-size:.78rem;color:#aaa}
+    details.rules summary{cursor:pointer;padding:8px 14px;color:#888;font-size:.8rem;letter-spacing:.08rem;list-style:none;user-select:none}
+    details.rules summary::-webkit-details-marker{display:none}
+    details.rules summary::before{content:"▸ ";color:#00e5ff}details.rules[open] summary::before{content:"▾ "}
+    details.rules .rules-body{padding:4px 14px 12px}details.rules .rules-body h4{color:#00e5ff;font-size:.75rem;margin:8px 0 4px;letter-spacing:.06rem}
+    details.rules .rules-body ul{padding-left:16px;margin:0}details.rules .rules-body li{margin:2px 0;line-height:1.5}
+    details.rules .rules-body kbd{background:#252542;border:1px solid #444;border-radius:3px;padding:1px 5px;font-size:.72rem;color:#ccc}
+  </style>
+</head>
+<body>
+  <div id="app">
+    <a href="index.html" class="back-link">← Back to Games</a>
+    <h1>PONG</h1>
+    <details class="rules"><summary>Rules &amp; Controls</summary><div class="rules-body">
+      <h4>RULES</h4>
+      <ul>
+        <li>Score by getting the ball past your opponent's paddle</li>
+        <li>Ball speeds up after each hit</li>
+        <li>First player to reach the score limit wins</li>
+      </ul>
+      <h4>CONTROLS</h4>
+      <ul>
+        <li><kbd>W</kbd> / <kbd>S</kbd> — Player 1 (left paddle)</li>
+        <li><kbd>↑</kbd> / <kbd>↓</kbd> — Player 2 (right paddle)</li>
+        <li><kbd>Enter</kbd> Start &nbsp; <kbd>P</kbd> Pause</li>
+      </ul>
+    </div></details>
+    <div id="scoreboard">
+      <span class="p1" id="s1">0</span>
+      <span>—</span>
+      <span class="p2" id="s2">0</span>
+    </div>
+    <div id="settings">
+      <label>Play to: <input type="number" id="max-score" value="5" min="1" max="99"/></label>
+    </div>
+    <div id="wrap">
+      <canvas id="c" width="600" height="380"></canvas>
+      <div id="overlay" class="overlay">
+        <h2 id="ot">PONG</h2>
+        <p id="om">Press ENTER to Start</p>
+      </div>
+    </div>
+    <div id="controls">
+      <span>W / S Player 1</span>
+      <span>↑ / ↓ Player 2</span>
+      <span>ENTER Start</span>
+      <span>P Pause</span>
+    </div>
+  </div>
+<script>
+(()=>{
+  const canvas=document.getElementById("c"),ctx=canvas.getContext("2d");
+  const W=canvas.width,H=canvas.height;
+  const s1El=document.getElementById("s1"),s2El=document.getElementById("s2"),maxScoreIn=document.getElementById("max-score");
+  const overlay=document.getElementById("overlay"),ot=document.getElementById("ot"),om=document.getElementById("om");
+
+  const PAD_W=10,PAD_H=70,BALL_R=7,PAD_SPEED=5;
+  let p1y,p2y,bx,by,bdx,bdy,score1,score2,running,paused,animId;
+  let keys={};
+
+  function init(){
+    p1y=H/2-PAD_H/2;p2y=H/2-PAD_H/2;
+    score1=0;score2=0;s1El.textContent=0;s2El.textContent=0;
+    running=true;paused=false;
+    overlay.classList.add("hidden");
+    resetBall();
+    if(animId)cancelAnimationFrame(animId);
+    animId=requestAnimationFrame(loop);
+  }
+
+  function resetBall(){
+    bx=W/2;by=H/2;
+    const angle=(Math.random()*Math.PI/3)-Math.PI/6;
+    const dir=Math.random()>.5?1:-1;
+    bdx=5*dir*Math.cos(angle);bdy=5*Math.sin(angle);
+  }
+
+  function loop(){
+    if(!running||paused){return}
+    // move paddles
+    if(keys["w"]&&p1y>0)p1y-=PAD_SPEED;
+    if(keys["s"]&&p1y<H-PAD_H)p1y+=PAD_SPEED;
+    if(keys["arrowup"]&&p2y>0)p2y-=PAD_SPEED;
+    if(keys["arrowdown"]&&p2y<H-PAD_H)p2y+=PAD_SPEED;
+
+    bx+=bdx;by+=bdy;
+
+    // top/bottom walls
+    if(by-BALL_R<0){by=BALL_R;bdy=Math.abs(bdy)}
+    if(by+BALL_R>H){by=H-BALL_R;bdy=-Math.abs(bdy)}
+
+    // paddle collisions
+    if(bx-BALL_R<=PAD_W+10&&by>=p1y&&by<=p1y+PAD_H&&bdx<0){
+      bdx=-bdx*1.05;bdy+=((by-(p1y+PAD_H/2))/(PAD_H/2))*3;bx=PAD_W+10+BALL_R;
+    }
+    if(bx+BALL_R>=W-PAD_W-10&&by>=p2y&&by<=p2y+PAD_H&&bdx>0){
+      bdx=-bdx*1.05;bdy+=((by-(p2y+PAD_H/2))/(PAD_H/2))*3;bx=W-PAD_W-10-BALL_R;
+    }
+    // clamp speed
+    if(Math.abs(bdx)>12)bdx=12*Math.sign(bdx);
+    if(Math.abs(bdy)>8)bdy=8*Math.sign(bdy);
+
+    // score
+    const maxScore=parseInt(maxScoreIn.value)||5;
+    if(bx<0){score2++;s2El.textContent=score2;if(score2>=maxScore){win("Player 2");return}resetBall()}
+    if(bx>W){score1++;s1El.textContent=score1;if(score1>=maxScore){win("Player 1");return}resetBall()}
+
+    draw();
+    animId=requestAnimationFrame(loop);
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // center line
+    ctx.setLineDash([6,6]);ctx.strokeStyle="#333";ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(W/2,0);ctx.lineTo(W/2,H);ctx.stroke();ctx.setLineDash([]);
+    // paddles
+    ctx.fillStyle="#00e5ff";ctx.fillRect(10,p1y,PAD_W,PAD_H);
+    ctx.fillStyle="#f06292";ctx.fillRect(W-PAD_W-10,p2y,PAD_W,PAD_H);
+    // ball
+    ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(bx,by,BALL_R,0,Math.PI*2);ctx.fill();
+  }
+
+  function win(who){
+    running=false;ot.textContent=who+" Wins!";om.textContent="Press ENTER to Play Again";overlay.classList.remove("hidden");
+  }
+
+  document.addEventListener("keydown",e=>{
+    keys[e.key.toLowerCase()]=true;
+    if(e.key==="Enter"){init()}
+    if(e.key==="p"||e.key==="P"){
+      if(!running)return;paused=!paused;
+      if(paused){ot.textContent="PAUSED";om.textContent="Press P to Resume";overlay.classList.remove("hidden")}
+      else{overlay.classList.add("hidden");animId=requestAnimationFrame(loop)}
+    }
+    if(["ArrowUp","ArrowDown"," "].includes(e.key))e.preventDefault();
+  });
+  document.addEventListener("keyup",e=>{keys[e.key.toLowerCase()]=false});
+  draw();
+})();
+</script>
+</body>
+</html>

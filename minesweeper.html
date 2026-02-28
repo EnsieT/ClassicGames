@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Minesweeper — Classic Games</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0f0f1a;color:#e0e0e0;font-family:'Segoe UI','Consolas',monospace;display:flex;justify-content:center;align-items:center;min-height:100vh}
+    #app{display:flex;flex-direction:column;align-items:center;gap:14px;padding:20px}
+    .back-link{align-self:flex-start;color:#00e5ff;text-decoration:none;font-size:.85rem}.back-link:hover{color:#fff}
+    h1{font-size:2rem;letter-spacing:.5rem;color:#00e5ff;text-shadow:0 0 12px #00e5ff88}
+    #difficulty{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+    #difficulty button{background:#1a1a2e;border:2px solid #333;color:#ccc;padding:6px 16px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.8rem;transition:border-color .2s}
+    #difficulty button:hover,#difficulty button.active{border-color:#00e5ff;color:#fff}
+    #info{display:flex;gap:20px;font-size:.95rem}#info span{color:#888}#info strong{color:#fff}
+    #board{display:inline-grid;gap:2px;user-select:none}
+    .cell{width:30px;height:30px;display:flex;justify-content:center;align-items:center;font-size:.8rem;font-weight:700;border-radius:3px;cursor:pointer;transition:background .1s}
+    .cell.hidden{background:#2a2a44;border:1px solid #3a3a5a}
+    .cell.hidden:hover{background:#3a3a5a}
+    .cell.revealed{background:#1a1a2e;border:1px solid #222;cursor:default}
+    .cell.mine{background:#f0000044;border:1px solid #f00}
+    .cell.flagged::after{content:"🚩";font-size:.85rem}
+    .n1{color:#00e5ff}.n2{color:#4caf50}.n3{color:#f06292}.n4{color:#7c4dff}
+    .n5{color:#f44336}.n6{color:#00bcd4}.n7{color:#fff}.n8{color:#888}
+    #status{font-size:1.1rem;color:#00e5ff;min-height:1.4em;text-align:center}
+    #controls{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:.72rem;color:#666}
+    #controls span{background:#1a1a2e;padding:4px 10px;border-radius:4px;border:1px solid #333}
+    details.rules{background:#1a1a2e;border:1px solid #333;border-radius:8px;padding:0;margin:8px auto;max-width:420px;width:100%;font-size:.78rem;color:#aaa}
+    details.rules summary{cursor:pointer;padding:8px 14px;color:#888;font-size:.8rem;letter-spacing:.08rem;list-style:none;user-select:none}
+    details.rules summary::-webkit-details-marker{display:none}
+    details.rules summary::before{content:"▸ ";color:#00e5ff}details.rules[open] summary::before{content:"▾ "}
+    details.rules .rules-body{padding:4px 14px 12px}details.rules .rules-body h4{color:#00e5ff;font-size:.75rem;margin:8px 0 4px;letter-spacing:.06rem}
+    details.rules .rules-body ul{padding-left:16px;margin:0}details.rules .rules-body li{margin:2px 0;line-height:1.5}
+    details.rules .rules-body kbd{background:#252542;border:1px solid #444;border-radius:3px;padding:1px 5px;font-size:.72rem;color:#ccc}
+  </style>
+</head>
+<body>
+  <div id="app">
+    <a href="index.html" class="back-link">← Back to Games</a>
+    <h1>MINESWEEPER</h1>
+    <details class="rules"><summary>Rules &amp; Controls</summary><div class="rules-body">
+      <h4>RULES</h4>
+      <ul>
+        <li>Reveal all cells that don't contain mines</li>
+        <li>Numbers show how many adjacent cells have mines</li>
+        <li>Flag cells you suspect contain mines</li>
+        <li>First click is always safe</li>
+      </ul>
+      <h4>CONTROLS</h4>
+      <ul>
+        <li><kbd>Left click</kbd> Reveal a cell</li>
+        <li><kbd>Right click</kbd> Place/remove a flag</li>
+      </ul>
+    </div></details>
+    <div id="difficulty">
+      <button data-d="easy" class="active">Easy 9×9 (10)</button>
+      <button data-d="medium">Medium 16×16 (40)</button>
+      <button data-d="hard">Hard 16×30 (99)</button>
+    </div>
+    <div id="info">
+      <span>Mines: <strong id="mines-left">10</strong></span>
+      <span>Time: <strong id="timer">0</strong>s</span>
+    </div>
+    <p id="status"></p>
+    <div id="board"></div>
+    <div id="controls">
+      <span>Click Reveal</span>
+      <span>Right-click Flag</span>
+    </div>
+  </div>
+<script>
+(()=>{
+  const PRESETS={easy:{rows:9,cols:9,mines:10},medium:{rows:16,cols:16,mines:40},hard:{rows:16,cols:30,mines:99}};
+  const boardEl=document.getElementById("board"),minesEl=document.getElementById("mines-left"),timerEl=document.getElementById("timer"),statusEl=document.getElementById("status");
+  let rows,cols,totalMines,grid,revealed,flagged,mineSet,gameOver,firstClick,timerInterval,seconds;
+
+  function init(preset){
+    const p=PRESETS[preset];rows=p.rows;cols=p.cols;totalMines=p.mines;
+    grid=[];revealed=new Set();flagged=new Set();mineSet=new Set();gameOver=false;firstClick=true;seconds=0;
+    clearInterval(timerInterval);timerEl.textContent="0";statusEl.textContent="";
+    minesEl.textContent=totalMines;
+    boardEl.style.gridTemplateColumns=`repeat(${cols},30px)`;
+    boardEl.innerHTML="";
+    for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+      const cell=document.createElement("div");cell.className="cell hidden";cell.dataset.r=r;cell.dataset.c=c;
+      cell.addEventListener("click",()=>reveal(r,c));
+      cell.addEventListener("contextmenu",e=>{e.preventDefault();toggleFlag(r,c)});
+      boardEl.appendChild(cell);
+    }
+  }
+
+  function placeMines(safeR,safeC){
+    const safe=new Set();for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const nr=safeR+dr,nc=safeC+dc;if(nr>=0&&nr<rows&&nc>=0&&nc<cols)safe.add(nr*cols+nc)}
+    while(mineSet.size<totalMines){const idx=Math.floor(Math.random()*rows*cols);if(!safe.has(idx))mineSet.add(idx)}
+    grid=Array.from({length:rows},(_,r)=>Array.from({length:cols},(_,c)=>{
+      if(mineSet.has(r*cols+c))return-1;
+      let cnt=0;for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<rows&&nc>=0&&nc<cols&&mineSet.has(nr*cols+nc))cnt++}return cnt;
+    }));
+  }
+
+  function getCell(r,c){return boardEl.children[r*cols+c]}
+
+  function reveal(r,c){
+    if(gameOver)return;const key=r*cols+c;if(revealed.has(key)||flagged.has(key))return;
+    if(firstClick){firstClick=false;placeMines(r,c);timerInterval=setInterval(()=>{seconds++;timerEl.textContent=seconds},1000)}
+    revealed.add(key);const cell=getCell(r,c);cell.classList.remove("hidden");cell.classList.add("revealed");
+    if(grid[r][c]===-1){cell.classList.add("mine");cell.textContent="💣";endGame(false);return}
+    if(grid[r][c]>0){cell.textContent=grid[r][c];cell.classList.add("n"+grid[r][c])}
+    else{for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<rows&&nc>=0&&nc<cols)reveal(nr,nc)}}
+    if(revealed.size===rows*cols-totalMines)endGame(true);
+  }
+
+  function toggleFlag(r,c){
+    if(gameOver)return;const key=r*cols+c;if(revealed.has(key))return;
+    const cell=getCell(r,c);
+    if(flagged.has(key)){flagged.delete(key);cell.classList.remove("flagged")}
+    else{flagged.add(key);cell.classList.add("flagged")}
+    minesEl.textContent=totalMines-flagged.size;
+  }
+
+  function endGame(won){
+    gameOver=true;clearInterval(timerInterval);
+    if(won){statusEl.textContent="🎉 You Win!";statusEl.style.color="#4caf50"}
+    else{statusEl.textContent="💥 Game Over!";statusEl.style.color="#f44336";mineSet.forEach(idx=>{const r=Math.floor(idx/cols),c=idx%cols;if(!revealed.has(idx)){const cell=getCell(r,c);cell.classList.remove("hidden");cell.classList.add("mine","revealed");cell.textContent="💣"}})}
+  }
+
+  document.querySelectorAll("#difficulty button").forEach(btn=>{
+    btn.addEventListener("click",()=>{document.querySelectorAll("#difficulty button").forEach(b=>b.classList.remove("active"));btn.classList.add("active");init(btn.dataset.d)});
+  });
+
+  init("easy");
+})();
+</script>
+</body>
+</html>

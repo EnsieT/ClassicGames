@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tetris — Classic Games</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="game-wrapper">
+    <a href="index.html" style="align-self:flex-start;color:#00e5ff;text-decoration:none;font-size:0.85rem;font-family:'Segoe UI',monospace;">← Back to Games</a>
+    <h1>TETRIS</h1>
+    <details class="rules"><summary>Rules &amp; Controls</summary><div class="rules-body">
+      <h4>RULES</h4>
+      <ul>
+        <li>Clear lines by filling complete rows with blocks</li>
+        <li>Stack pieces carefully — game ends when blocks reach the top</li>
+        <li>Score more points by clearing multiple lines at once</li>
+      </ul>
+      <h4>CONTROLS</h4>
+      <ul>
+        <li><kbd>←</kbd> <kbd>→</kbd> Move piece</li>
+        <li><kbd>↑</kbd> Rotate</li>
+        <li><kbd>↓</kbd> Soft drop</li>
+        <li><kbd>Space</kbd> Hard drop</li>
+        <li><kbd>C</kbd> Hold piece</li>
+        <li><kbd>P</kbd> Pause</li>
+      </ul>
+    </div></details>
+
+    <div id="main-area">
+      <!-- Left panel: Next piece -->
+      <div id="left-panel">
+        <div class="panel-section">
+          <h3>NEXT</h3>
+          <canvas id="next-canvas" width="120" height="120"></canvas>
+        </div>
+        <div class="panel-section">
+          <h3>HOLD</h3>
+          <canvas id="hold-canvas" width="120" height="120"></canvas>
+        </div>
+      </div>
+
+      <!-- Game board -->
+      <canvas id="board" width="300" height="600"></canvas>
+
+      <!-- Right panel: Score / High Scores -->
+      <div id="right-panel">
+        <div class="panel-section">
+          <h3>SCORE</h3>
+          <p id="score">0</p>
+        </div>
+        <div class="panel-section">
+          <h3>LEVEL</h3>
+          <p id="level">1</p>
+        </div>
+        <div class="panel-section">
+          <h3>LINES</h3>
+          <p id="lines">0</p>
+        </div>
+        <div class="panel-section high-scores">
+          <h3>HIGH SCORES</h3>
+          <ol id="high-score-list"></ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overlays -->
+    <div id="overlay" class="overlay">
+      <div id="overlay-content">
+        <h2 id="overlay-title">TETRIS</h2>
+        <p id="overlay-message">Press ENTER to Start</p>
+        <div id="game-over-form" class="hidden">
+          <input type="text" id="player-name" maxlength="12" placeholder="Your name" />
+          <button id="save-score-btn">Save Score</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls guide -->
+    <div id="controls">
+      <span>← → Move</span>
+      <span>↑ Rotate</span>
+      <span>↓ Soft Drop</span>
+      <span>Space Hard Drop</span>
+      <span>C Hold</span>
+      <span>P Pause</span>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

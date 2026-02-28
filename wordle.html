@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Wordle — Classic Games</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0f0f1a;color:#e0e0e0;font-family:'Segoe UI','Consolas',monospace;display:flex;justify-content:center;align-items:center;min-height:100vh}
+    #app{display:flex;flex-direction:column;align-items:center;gap:14px;padding:20px;max-width:500px;width:100%}
+    .back-link{align-self:flex-start;color:#00e5ff;text-decoration:none;font-size:.85rem}.back-link:hover{color:#fff}
+    h1{font-size:2rem;letter-spacing:.5rem;color:#00e5ff;text-shadow:0 0 12px #00e5ff88}
+    #board{display:flex;flex-direction:column;gap:6px}
+    .row{display:flex;gap:6px;justify-content:center}
+    .tile{width:56px;height:56px;display:flex;justify-content:center;align-items:center;font-size:1.6rem;font-weight:700;text-transform:uppercase;border:2px solid #333;border-radius:4px;transition:transform .2s,background .3s,border-color .3s}
+    .tile.filled{border-color:#555;animation:pop .1s}
+    @keyframes pop{50%{transform:scale(1.1)}}
+    .tile.correct{background:#4caf50;border-color:#4caf50;color:#fff}
+    .tile.present{background:#f0a000;border-color:#f0a000;color:#fff}
+    .tile.absent{background:#333;border-color:#333;color:#888}
+    .tile.reveal{animation:flip .4s}
+    @keyframes flip{0%{transform:scaleY(1)}50%{transform:scaleY(0)}100%{transform:scaleY(1)}}
+    #keyboard{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+    .kb-row{display:flex;gap:4px;justify-content:center}
+    .key{padding:10px 12px;min-width:32px;height:44px;display:flex;justify-content:center;align-items:center;background:#1a1a2e;border:1px solid #333;border-radius:6px;cursor:pointer;font-size:.85rem;font-weight:700;color:#ccc;text-transform:uppercase;transition:background .15s,color .15s,border-color .15s;font-family:inherit}
+    .key:hover{background:#2a2a4e}
+    .key.wide{min-width:56px;font-size:.7rem}
+    .key.correct{background:#4caf50;border-color:#4caf50;color:#fff}
+    .key.present{background:#f0a000;border-color:#f0a000;color:#fff}
+    .key.absent{background:#222;border-color:#222;color:#555}
+    #status{font-size:1rem;min-height:1.4em;text-align:center}
+    button.action{background:#1a1a2e;border:2px solid #333;color:#ccc;padding:8px 20px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.85rem;transition:border-color .2s}
+    button.action:hover{border-color:#00e5ff;color:#fff}
+    .stats{display:flex;gap:20px;font-size:.85rem}.stats span{color:#888}.stats strong{color:#fff}
+    details.rules{background:#1a1a2e;border:1px solid #333;border-radius:8px;padding:0;margin:8px auto;max-width:420px;width:100%;font-size:.78rem;color:#aaa}
+    details.rules summary{cursor:pointer;padding:8px 14px;color:#888;font-size:.8rem;letter-spacing:.08rem;list-style:none;user-select:none}
+    details.rules summary::-webkit-details-marker{display:none}
+    details.rules summary::before{content:"▸ ";color:#00e5ff}details.rules[open] summary::before{content:"▾ "}
+    details.rules .rules-body{padding:4px 14px 12px}details.rules .rules-body h4{color:#00e5ff;font-size:.75rem;margin:8px 0 4px;letter-spacing:.06rem}
+    details.rules .rules-body ul{padding-left:16px;margin:0}details.rules .rules-body li{margin:2px 0;line-height:1.5}
+    details.rules .rules-body kbd{background:#252542;border:1px solid #444;border-radius:3px;padding:1px 5px;font-size:.72rem;color:#ccc}
+  </style>
+</head>
+<body>
+  <div id="app">
+    <a href="index.html" class="back-link">← Back to Games</a>
+    <h1>WORDLE</h1>
+    <details class="rules"><summary>Rules &amp; Controls</summary><div class="rules-body">
+      <h4>RULES</h4>
+      <ul>
+        <li>Guess the secret 5-letter word in 6 attempts</li>
+        <li>🟩 <strong>Green</strong> — correct letter, correct position</li>
+        <li>🟨 <strong>Yellow</strong> — correct letter, wrong position</li>
+        <li>⬛ <strong>Gray</strong> — letter not in the word</li>
+      </ul>
+      <h4>CONTROLS</h4>
+      <ul>
+        <li>Type letters on keyboard or click on-screen keys</li>
+        <li><kbd>Enter</kbd> Submit guess</li>
+        <li><kbd>Backspace</kbd> Delete last letter</li>
+      </ul>
+    </div></details>
+    <div class="stats">
+      <span>Played: <strong id="stat-played">0</strong></span>
+      <span>Won: <strong id="stat-won">0</strong></span>
+      <span>Streak: <strong id="stat-streak">0</strong></span>
+    </div>
+    <div id="board"></div>
+    <p id="status"></p>
+    <div id="keyboard"></div>
+    <button class="action" id="new-btn" style="display:none">New Word</button>
+  </div>
+<script>
+(()=>{
+  // Common 5-letter words list (curated subset)
+  const WORDS=["about","above","abuse","actor","acute","admit","adopt","adult","after","again","agent","agree","ahead","alarm","album","alert","alien","align","alive","alley","allow","alone","along","alter","among","angel","anger","angle","angry","apart","apple","apply","arena","argue","arise","armor","array","aside","asset","atlas","avoid","awake","award","aware","base","basic","basin","basis","beach","beast","begin","being","below","bench","berry","birth","black","blade","blame","bland","blank","blast","blaze","bleed","blend","bless","blind","block","blood","bloom","blown","blues","blunt","board","bonus","boost","booth","bound","brain","brand","brave","bread","break","breed","brick","bride","brief","bring","broad","broke","brown","brush","buddy","build","bunch","burst","buyer","cabin","cable","candy","carry","catch","cause","chain","chair","chaos","charm","chart","chase","cheap","check","cheek","cheer","chess","chest","chief","child","china","chunk","claim","class","clean","clear","climb","cling","clock","clone","close","cloth","cloud","coach","coast","color","comet","coral","could","count","court","cover","crack","craft","crash","crazy","cream","crime","cross","crowd","crown","crush","curve","cycle","daily","dance","death","debug","debut","delay","depth","derby","devil","diary","dirty","donor","doubt","dough","draft","drain","drama","drank","drawn","dream","dress","dried","drift","drill","drink","drive","drone","drove","dying","eager","early","earth","eight","elder","elect","elite","email","empty","enemy","enjoy","enter","entry","equal","error","essay","event","every","exact","exert","exile","exist","extra","fabric","faith","false","fancy","fatal","fault","feast","fence","fewer","fiber","field","fifth","fifty","fight","final","first","fixed","flame","flash","fleet","flesh","float","flood","floor","floss","flour","flown","fluid","flush","focus","force","forge","forth","forum","found","frame","frank","fraud","fresh","front","frost","froze","fruit","fully","ghost","giant","given","glass","globe","gloom","glory","glove","going","grace","grade","grain","grand","grant","graph","grasp","grass","grave","great","green","greet","grief","grill","grind","grip","gross","group","grove","grown","guard","guess","guest","guide","guild","guilt","habit","happy","harsh","heart","heavy","hence","hobby","honey","honor","horse","hotel","house","human","humor","hurry","ideal","image","imply","index","india","indie","inner","input","irony","issue","ivory","jewel","joint","joker","judge","juice","kebab","knife","knock","known","label","labor","laser","later","laugh","layer","learn","lease","least","leave","legal","level","light","limit","linen","liver","local","lodge","logic","login","loose","lover","lower","loyal","lucky","lunar","lunch","lying","magic","major","maker","manor","maple","march","match","mayor","media","mercy","merge","merit","metal","meter","might","minor","minus","mixed","model","money","month","moral","motor","mount","mouse","mouth","movie","music","naive","named","nasty","naval","nerve","never","newly","night","noble","noise","north","noted","novel","nurse","nylon","occur","ocean","offer","often","olive","onion","orbit","order","other","ought","outer","owned","owner","oxide","ozone","paint","panel","panic","paper","party","pasta","patch","pause","peace","peach","pearl","penny","phase","phone","photo","piano","piece","pilot","pinch","pitch","pixel","pizza","place","plain","plane","plant","plate","plaza","plead","pluck","plumb","plume","plump","point","polar","pound","power","press","price","pride","prime","print","prior","prize","probe","prone","proof","proud","prove","psalm","pulse","punch","pupil","purse","quest","queue","quick","quiet","quota","quote","radar","radio","raise","rally","ranch","range","rapid","ratio","reach","react","ready","realm","rebel","reign","relax","repay","reply","rider","ridge","rifle","right","rigid","risky","rival","river","robin","robot","rocky","roger","roman","roomy","rough","round","route","royal","rugby","ruler","rural","sadly","saint","salad","sauce","scale","scare","scene","scent","scope","score","scout","scrap","sense","serve","setup","seven","shade","shall","shame","shape","share","shark","sharp","sheep","sheer","sheet","shelf","shell","shift","shine","shirt","shock","shoot","shore","short","shout","shown","sight","silly","since","sixth","sixty","sized","skill","skull","slate","slave","sleep","slice","slide","slope","small","smart","smell","smile","smoke","snake","solar","solid","solve","sorry","sound","south","space","spare","spark","speak","speed","spend","spent","spice","split","spoke","spoon","sport","spray","squad","stack","staff","stage","stain","stair","stake","stall","stamp","stand","stark","start","state","stays","steak","steal","steam","steel","steep","steer","stern","stick","stiff","still","stock","stone","stood","store","storm","story","stout","stove","strap","straw","strip","stuck","study","stuff","stump","style","sugar","suite","sunny","super","surge","swamp","swarn","swear","sweep","sweet","swept","swift","swing","sword","syrup","table","taste","teach","teeth","tempt","thank","theme","thick","thing","think","third","thorn","those","three","threw","throw","thumb","tidal","tight","timer","tired","titan","title","toast","today","token","topic","total","touch","tough","towel","tower","toxic","trace","track","trade","trail","train","trait","trash","treat","trend","trial","tribe","trick","tried","troop","truck","truly","trunk","trust","truth","tumor","twice","twist","tying","ultra","uncle","under","unify","union","unite","unity","until","upper","upset","urban","usage","usual","vague","valid","value","valve","vapor","vault","verse","video","vigor","vinyl","viral","virus","visit","vista","vital","vivid","vocal","voice","voter","wages","waste","watch","water","weave","weigh","weird","whale","wheat","wheel","where","which","while","white","whole","whose","width","witch","woman","women","world","worry","worst","worth","would","wound","wrath","write","wrong","wrote","yacht","yield","young","yours","youth","zones"];
+
+  const MAX_GUESSES=6,WORD_LEN=5;
+  const boardEl=document.getElementById("board"),kbEl=document.getElementById("keyboard"),statusEl=document.getElementById("status"),newBtn=document.getElementById("new-btn");
+  const statPlayed=document.getElementById("stat-played"),statWon=document.getElementById("stat-won"),statStreak=document.getElementById("stat-streak");
+  const STATS_KEY="wordle_stats";
+
+  let targetWord,guesses,currentGuess,gameOver,letterStates={};
+
+  function loadStats(){try{return JSON.parse(localStorage.getItem(STATS_KEY))||{played:0,won:0,streak:0}}catch{return{played:0,won:0,streak:0}}}
+  function saveStats(s){localStorage.setItem(STATS_KEY,JSON.stringify(s))}
+  function showStats(){const s=loadStats();statPlayed.textContent=s.played;statWon.textContent=s.won;statStreak.textContent=s.streak}
+
+  function init(){
+    targetWord=WORDS[Math.floor(Math.random()*WORDS.length)];
+    guesses=[];currentGuess="";gameOver=false;letterStates={};
+    statusEl.textContent="";newBtn.style.display="none";
+    renderBoard();renderKeyboard();showStats();
+  }
+
+  function renderBoard(){
+    boardEl.innerHTML="";
+    for(let r=0;r<MAX_GUESSES;r++){
+      const row=document.createElement("div");row.className="row";
+      for(let c=0;c<WORD_LEN;c++){
+        const tile=document.createElement("div");tile.className="tile";
+        if(r<guesses.length){
+          tile.textContent=guesses[r][c].letter;
+          tile.classList.add(guesses[r][c].state);
+        }else if(r===guesses.length&&c<currentGuess.length){
+          tile.textContent=currentGuess[c];tile.classList.add("filled");
+        }
+        row.appendChild(tile);
+      }
+      boardEl.appendChild(row);
+    }
+  }
+
+  function renderKeyboard(){
+    const rows=["qwertyuiop","asdfghjkl","zxcvbnm"];
+    kbEl.innerHTML="";
+    rows.forEach((row,ri)=>{
+      const kbRow=document.createElement("div");kbRow.className="kb-row";
+      if(ri===2){const enter=document.createElement("div");enter.className="key wide";enter.textContent="Enter";enter.addEventListener("click",submitGuess);kbRow.appendChild(enter)}
+      for(const ch of row){
+        const key=document.createElement("div");key.className="key";key.textContent=ch;
+        if(letterStates[ch])key.classList.add(letterStates[ch]);
+        key.addEventListener("click",()=>addLetter(ch));
+        kbRow.appendChild(key);
+      }
+      if(ri===2){const del=document.createElement("div");del.className="key wide";del.textContent="⌫";del.addEventListener("click",deleteLetter);kbRow.appendChild(del)}
+      kbEl.appendChild(kbRow);
+    });
+  }
+
+  function addLetter(ch){if(gameOver||currentGuess.length>=WORD_LEN)return;currentGuess+=ch;renderBoard()}
+  function deleteLetter(){if(gameOver||!currentGuess.length)return;currentGuess=currentGuess.slice(0,-1);renderBoard()}
+
+  function submitGuess(){
+    if(gameOver)return;
+    if(currentGuess.length!==WORD_LEN){statusEl.textContent="Not enough letters";statusEl.style.color="#f0a000";return}
+    if(!WORDS.includes(currentGuess)){statusEl.textContent="Not in word list";statusEl.style.color="#f0a000";return}
+    statusEl.textContent="";
+
+    // evaluate
+    const result=[];
+    const targetArr=[...targetWord];const guessArr=[...currentGuess];
+    const used=Array(WORD_LEN).fill(false);
+
+    // correct first
+    for(let i=0;i<WORD_LEN;i++){
+      if(guessArr[i]===targetArr[i]){result[i]={letter:guessArr[i],state:"correct"};used[i]=true}
+      else result[i]={letter:guessArr[i],state:"absent"};
+    }
+    // present
+    for(let i=0;i<WORD_LEN;i++){
+      if(result[i].state==="correct")continue;
+      for(let j=0;j<WORD_LEN;j++){
+        if(!used[j]&&guessArr[i]===targetArr[j]){result[i].state="present";used[j]=true;break}
+      }
+    }
+
+    // update letter states
+    for(const r of result){
+      const prev=letterStates[r.letter];
+      if(r.state==="correct")letterStates[r.letter]="correct";
+      else if(r.state==="present"&&prev!=="correct")letterStates[r.letter]="present";
+      else if(!prev)letterStates[r.letter]="absent";
+    }
+
+    guesses.push(result);currentGuess="";
+    renderBoard();renderKeyboard();
+
+    if(result.every(r=>r.state==="correct")){
+      gameOver=true;statusEl.textContent="🎉 Brilliant!";statusEl.style.color="#4caf50";
+      const s=loadStats();s.played++;s.won++;s.streak++;saveStats(s);showStats();newBtn.style.display="";
+    }else if(guesses.length>=MAX_GUESSES){
+      gameOver=true;statusEl.textContent=`The word was: ${targetWord.toUpperCase()}`;statusEl.style.color="#f44336";
+      const s=loadStats();s.played++;s.streak=0;saveStats(s);showStats();newBtn.style.display="";
+    }
+  }
+
+  document.addEventListener("keydown",e=>{
+    if(e.ctrlKey||e.altKey||e.metaKey)return;
+    if(e.key==="Enter"){submitGuess();return}
+    if(e.key==="Backspace"){deleteLetter();return}
+    if(/^[a-z]$/i.test(e.key))addLetter(e.key.toLowerCase());
+  });
+
+  newBtn.addEventListener("click",init);
+  init();
+})();
+</script>
+</body>
+</html>

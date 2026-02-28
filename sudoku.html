@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Sudoku — Classic Games</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0f0f1a;color:#e0e0e0;font-family:'Segoe UI','Consolas',monospace;display:flex;justify-content:center;align-items:center;min-height:100vh}
+    #app{display:flex;flex-direction:column;align-items:center;gap:14px;padding:20px}
+    .back-link{align-self:flex-start;color:#00e5ff;text-decoration:none;font-size:.85rem}.back-link:hover{color:#fff}
+    h1{font-size:2rem;letter-spacing:.5rem;color:#00e5ff;text-shadow:0 0 12px #00e5ff88}
+    #difficulty{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+    #difficulty button{background:#1a1a2e;border:2px solid #333;color:#ccc;padding:6px 16px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.8rem;transition:border-color .2s}
+    #difficulty button:hover,#difficulty button.active{border-color:#00e5ff;color:#fff}
+    #info{display:flex;gap:20px;font-size:.9rem}#info span{color:#888}#info strong{color:#fff}
+    #grid{display:grid;grid-template-columns:repeat(9,1fr);width:378px;height:378px;border:3px solid #00e5ff;border-radius:4px;overflow:hidden}
+    .cell{width:42px;height:42px;display:flex;justify-content:center;align-items:center;font-size:1.2rem;font-weight:700;cursor:pointer;border:1px solid #222;transition:background .1s;user-select:none}
+    .cell:nth-child(3n){border-right:2px solid #444}
+    .cell:nth-child(9n){border-right:none}
+    .cell.row-border{border-bottom:2px solid #444}
+    .cell.given{color:#00e5ff;cursor:default}
+    .cell.user{color:#f0a000}
+    .cell.error{color:#f44336;background:#f4433611}
+    .cell.selected{background:#00e5ff22}
+    .cell.highlight{background:#ffffff08}
+    #numpad{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:260px}
+    #numpad button{background:#1a1a2e;border:2px solid #333;color:#ccc;padding:10px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:1.1rem;font-weight:700;transition:border-color .2s}
+    #numpad button:hover{border-color:#00e5ff;color:#fff}
+    #numpad button.erase{font-size:.8rem;color:#f06292}
+    #status{font-size:1rem;min-height:1.4em;text-align:center}
+    button.action{background:#1a1a2e;border:2px solid #333;color:#ccc;padding:8px 20px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.85rem;transition:border-color .2s}
+    button.action:hover{border-color:#00e5ff;color:#fff}
+    details.rules{background:#1a1a2e;border:1px solid #333;border-radius:8px;padding:0;margin:8px auto;max-width:420px;width:100%;font-size:.78rem;color:#aaa}
+    details.rules summary{cursor:pointer;padding:8px 14px;color:#888;font-size:.8rem;letter-spacing:.08rem;list-style:none;user-select:none}
+    details.rules summary::-webkit-details-marker{display:none}
+    details.rules summary::before{content:"▸ ";color:#00e5ff}details.rules[open] summary::before{content:"▾ "}
+    details.rules .rules-body{padding:4px 14px 12px}details.rules .rules-body h4{color:#00e5ff;font-size:.75rem;margin:8px 0 4px;letter-spacing:.06rem}
+    details.rules .rules-body ul{padding-left:16px;margin:0}details.rules .rules-body li{margin:2px 0;line-height:1.5}
+    details.rules .rules-body kbd{background:#252542;border:1px solid #444;border-radius:3px;padding:1px 5px;font-size:.72rem;color:#ccc}
+  </style>
+</head>
+<body>
+  <div id="app">
+    <a href="index.html" class="back-link">← Back to Games</a>
+    <h1>SUDOKU</h1>
+    <details class="rules"><summary>Rules &amp; Controls</summary><div class="rules-body">
+      <h4>RULES</h4>
+      <ul>
+        <li>Fill the 9×9 grid so every row, column, and 3×3 box contains digits 1–9</li>
+        <li>No digit may repeat in any row, column, or box</li>
+        <li>Pre-filled numbers cannot be changed</li>
+      </ul>
+      <h4>CONTROLS</h4>
+      <ul>
+        <li><kbd>Click</kbd> an empty cell to select it</li>
+        <li><kbd>1</kbd>–<kbd>9</kbd> or numpad to enter a digit</li>
+        <li><kbd>Delete</kbd> or <kbd>0</kbd> to clear a cell</li>
+      </ul>
+    </div></details>
+    <div id="difficulty">
+      <button data-d="easy" class="active">Easy</button>
+      <button data-d="medium">Medium</button>
+      <button data-d="hard">Hard</button>
+    </div>
+    <div id="info">
+      <span>Errors: <strong id="errors">0</strong></span>
+      <span>Time: <strong id="timer">0:00</strong></span>
+    </div>
+    <div id="grid"></div>
+    <div id="numpad"></div>
+    <p id="status"></p>
+    <button class="action" id="new-btn">New Puzzle</button>
+  </div>
+<script>
+(()=>{
+  const gridEl=document.getElementById("grid"),statusEl=document.getElementById("status"),errorsEl=document.getElementById("errors"),timerEl=document.getElementById("timer");
+  const REMOVE={easy:36,medium:46,hard:54};
+  let solution,puzzle,userGrid,selectedCell,errors,timerInterval,seconds,diff="easy",solved;
+
+  /* ── Sudoku generator ──────────────────────────────── */
+  function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+  function isValidPlacement(board,r,c,num){
+    for(let i=0;i<9;i++){if(board[r][i]===num||board[i][c]===num)return false}
+    const br=Math.floor(r/3)*3,bc=Math.floor(c/3)*3;
+    for(let i=br;i<br+3;i++)for(let j=bc;j<bc+3;j++)if(board[i][j]===num)return false;
+    return true;
+  }
+
+  function solveSudoku(board){
+    for(let r=0;r<9;r++)for(let c=0;c<9;c++){
+      if(board[r][c]===0){
+        const nums=shuffle([1,2,3,4,5,6,7,8,9]);
+        for(const n of nums){
+          if(isValidPlacement(board,r,c,n)){board[r][c]=n;if(solveSudoku(board))return true;board[r][c]=0}
+        }
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function generate(difficulty){
+    const board=Array.from({length:9},()=>Array(9).fill(0));
+    solveSudoku(board);
+    solution=board.map(r=>[...r]);
+    const puz=board.map(r=>[...r]);
+    const cells=shuffle(Array.from({length:81},(_,i)=>i));
+    const toRemove=REMOVE[difficulty]||36;
+    for(let i=0;i<toRemove;i++){const r=Math.floor(cells[i]/9),c=cells[i]%9;puz[r][c]=0}
+    return puz;
+  }
+
+  /* ── Game ──────────────────────────────────────────── */
+  function init(){
+    puzzle=generate(diff);
+    userGrid=puzzle.map(r=>[...r]);
+    selectedCell=null;errors=0;seconds=0;solved=false;
+    errorsEl.textContent=0;statusEl.textContent="";timerEl.textContent="0:00";
+    clearInterval(timerInterval);
+    timerInterval=setInterval(()=>{seconds++;const m=Math.floor(seconds/60),s=seconds%60;timerEl.textContent=m+":"+(s<10?"0":"")+s},1000);
+    render();
+  }
+
+  function render(){
+    gridEl.innerHTML="";
+    for(let r=0;r<9;r++)for(let c=0;c<9;c++){
+      const cell=document.createElement("div");
+      cell.className="cell";
+      const val=userGrid[r][c];
+      if(val)cell.textContent=val;
+      if(puzzle[r][c]){cell.classList.add("given")}
+      else{
+        cell.classList.add("user");
+        if(val&&val!==solution[r][c])cell.classList.add("error");
+      }
+      // row border for 3×3 boxes
+      if(r===2||r===5)cell.classList.add("row-border");
+      // selected
+      if(selectedCell&&selectedCell.r===r&&selectedCell.c===c)cell.classList.add("selected");
+      // highlight same row/col/box
+      if(selectedCell){
+        const sr=selectedCell.r,sc=selectedCell.c;
+        if(r===sr||c===sc||(Math.floor(r/3)===Math.floor(sr/3)&&Math.floor(c/3)===Math.floor(sc/3)))
+          cell.classList.add("highlight");
+      }
+      cell.addEventListener("click",()=>{if(!puzzle[r][c]&&!solved){selectedCell={r,c};render()}});
+      gridEl.appendChild(cell);
+    }
+    renderNumpad();
+  }
+
+  function renderNumpad(){
+    const np=document.getElementById("numpad");np.innerHTML="";
+    for(let n=1;n<=9;n++){
+      const btn=document.createElement("button");btn.textContent=n;
+      btn.addEventListener("click",()=>placeNumber(n));np.appendChild(btn);
+    }
+    const eraseBtn=document.createElement("button");eraseBtn.textContent="Erase";eraseBtn.className="erase";
+    eraseBtn.addEventListener("click",()=>placeNumber(0));np.appendChild(eraseBtn);
+  }
+
+  function placeNumber(n){
+    if(!selectedCell||solved)return;
+    const{r,c}=selectedCell;
+    if(puzzle[r][c])return; // given cell
+    userGrid[r][c]=n;
+    if(n&&n!==solution[r][c]){errors++;errorsEl.textContent=errors}
+    // check win
+    let complete=true;
+    for(let i=0;i<9;i++)for(let j=0;j<9;j++)if(userGrid[i][j]!==solution[i][j])complete=false;
+    if(complete){solved=true;clearInterval(timerInterval);statusEl.textContent="🎉 Puzzle Complete!";statusEl.style.color="#4caf50"}
+    render();
+  }
+
+  // Keyboard input
+  document.addEventListener("keydown",e=>{
+    if(!selectedCell||solved)return;
+    const n=parseInt(e.key);
+    if(n>=1&&n<=9){placeNumber(n);return}
+    if(e.key==="Backspace"||e.key==="Delete"){placeNumber(0);return}
+    const{r,c}=selectedCell;
+    if(e.key==="ArrowUp"&&r>0){selectedCell.r--;render()}
+    if(e.key==="ArrowDown"&&r<8){selectedCell.r++;render()}
+    if(e.key==="ArrowLeft"&&c>0){selectedCell.c--;render()}
+    if(e.key==="ArrowRight"&&c<8){selectedCell.c++;render()}
+  });
+
+  document.querySelectorAll("#difficulty button").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      document.querySelectorAll("#difficulty button").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");diff=btn.dataset.d;init();
+    });
+  });
+  document.getElementById("new-btn").addEventListener("click",init);
+  init();
+})();
+</script>
+</body>
+</html>

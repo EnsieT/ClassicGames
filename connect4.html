@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Connect Four — Classic Games</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0f0f1a;color:#e0e0e0;font-family:'Segoe UI','Consolas',monospace;display:flex;justify-content:center;align-items:center;min-height:100vh}
+    #app{display:flex;flex-direction:column;align-items:center;gap:14px;padding:20px}
+    .back-link{align-self:flex-start;color:#00e5ff;text-decoration:none;font-size:.85rem}.back-link:hover{color:#fff}
+    h1{font-size:2rem;letter-spacing:.5rem;color:#00e5ff;text-shadow:0 0 12px #00e5ff88}
+    #turn{font-size:1.1rem;font-weight:700}
+    #board{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;background:#1a1a6e;padding:10px;border-radius:10px;border:3px solid #333}
+    .cell{width:52px;height:52px;border-radius:50%;background:#0f0f1a;cursor:pointer;transition:background .15s,box-shadow .15s;border:2px solid #222}
+    .cell:hover{border-color:#555}
+    .cell.r{background:#f44336;border-color:#f44336}.cell.y{background:#f0a000;border-color:#f0a000}
+    .cell.win{box-shadow:0 0 14px 4px #fff8}
+    #status{font-size:1.1rem;min-height:1.4em;text-align:center;color:#00e5ff}
+    #scoreboard{display:flex;gap:28px}
+    .si{display:flex;flex-direction:column;align-items:center;gap:2px}
+    .sl{font-size:.75rem;color:#888;letter-spacing:.1rem}.sv{font-size:1.4rem;font-weight:700;color:#fff}
+    .btns{display:flex;gap:10px}
+    button.action{background:#1a1a2e;border:2px solid #333;color:#ccc;padding:8px 20px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.85rem;transition:border-color .2s}
+    button.action:hover{border-color:#00e5ff;color:#fff}
+    details.rules{background:#1a1a2e;border:1px solid #333;border-radius:8px;padding:0;margin:8px auto;max-width:420px;width:100%;font-size:.78rem;color:#aaa}
+    details.rules summary{cursor:pointer;padding:8px 14px;color:#888;font-size:.8rem;letter-spacing:.08rem;list-style:none;user-select:none}
+    details.rules summary::-webkit-details-marker{display:none}
+    details.rules summary::before{content:"▸ ";color:#00e5ff}details.rules[open] summary::before{content:"▾ "}
+    details.rules .rules-body{padding:4px 14px 12px}details.rules .rules-body h4{color:#00e5ff;font-size:.75rem;margin:8px 0 4px;letter-spacing:.06rem}
+    details.rules .rules-body ul{padding-left:16px;margin:0}details.rules .rules-body li{margin:2px 0;line-height:1.5}
+    details.rules .rules-body kbd{background:#252542;border:1px solid #444;border-radius:3px;padding:1px 5px;font-size:.72rem;color:#ccc}
+  </style>
+</head>
+<body>
+  <div id="app">
+    <a href="index.html" class="back-link">← Back to Games</a>
+    <h1>CONNECT FOUR</h1>
+    <details class="rules"><summary>Rules &amp; Controls</summary><div class="rules-body">
+      <h4>RULES</h4>
+      <ul>
+        <li>Players take turns dropping colored discs into columns</li>
+        <li>Discs fall to the lowest available slot in that column</li>
+        <li>First to connect 4 in a row — horizontally, vertically, or diagonally — wins</li>
+      </ul>
+      <h4>CONTROLS</h4>
+      <ul><li><kbd>Click</kbd> a column to drop your disc</li></ul>
+    </div></details>
+    <p id="turn">🔴 Red's turn</p>
+    <div id="board"></div>
+    <p id="status"></p>
+    <div id="scoreboard">
+      <div class="si"><span class="sl">🔴 RED</span><span class="sv" id="sr">0</span></div>
+      <div class="si"><span class="sl">Draws</span><span class="sv" id="sd">0</span></div>
+      <div class="si"><span class="sl">🟡 YELLOW</span><span class="sv" id="sy">0</span></div>
+    </div>
+    <div class="btns">
+      <button class="action" id="new-btn">New Game</button>
+      <button class="action" id="reset-btn">Reset Scores</button>
+    </div>
+  </div>
+<script>
+(()=>{
+  const ROWS=6,COLS=7;
+  const boardEl=document.getElementById("board"),turnEl=document.getElementById("turn"),statusEl=document.getElementById("status");
+  const srEl=document.getElementById("sr"),syEl=document.getElementById("sy"),sdEl=document.getElementById("sd");
+  let grid,currentPlayer,gameOver,scores={r:0,y:0,d:0};
+
+  function init(){
+    grid=Array.from({length:ROWS},()=>Array(COLS).fill(0));
+    currentPlayer="r";gameOver=false;statusEl.textContent="";
+    updateTurn();render();
+  }
+
+  function updateTurn(){turnEl.textContent=currentPlayer==="r"?"🔴 Red's turn":"🟡 Yellow's turn";turnEl.style.color=currentPlayer==="r"?"#f44336":"#f0a000"}
+
+  function render(){
+    boardEl.innerHTML="";
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      const cell=document.createElement("div");cell.className="cell";
+      if(grid[r][c]==="r")cell.classList.add("r");
+      if(grid[r][c]==="y")cell.classList.add("y");
+      cell.addEventListener("click",()=>drop(c));
+      cell.dataset.r=r;cell.dataset.c=c;
+      boardEl.appendChild(cell);
+    }
+  }
+
+  function getCell(r,c){return boardEl.children[r*COLS+c]}
+
+  function drop(c){
+    if(gameOver)return;
+    let row=-1;for(let r=ROWS-1;r>=0;r--){if(!grid[r][c]){row=r;break}}
+    if(row===-1)return;
+    grid[row][c]=currentPlayer;render();
+    const win=checkWin(row,c);
+    if(win){
+      win.forEach(([r,c])=>getCell(r,c).classList.add("win"));
+      const name=currentPlayer==="r"?"Red":"Yellow";
+      statusEl.textContent=`🎉 ${name} wins!`;statusEl.style.color=currentPlayer==="r"?"#f44336":"#f0a000";
+      scores[currentPlayer]++;updateScores();gameOver=true;return;
+    }
+    if(grid[0].every(v=>v)){statusEl.textContent="It's a draw!";statusEl.style.color="#888";scores.d++;updateScores();gameOver=true;return}
+    currentPlayer=currentPlayer==="r"?"y":"r";updateTurn();
+  }
+
+  function checkWin(row,col){
+    const dirs=[[0,1],[1,0],[1,1],[1,-1]];
+    for(const[dr,dc]of dirs){
+      let cells=[[row,col]];
+      for(let d=1;d<4;d++){const nr=row+dr*d,nc=col+dc*d;if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&grid[nr][nc]===currentPlayer)cells.push([nr,nc]);else break}
+      for(let d=1;d<4;d++){const nr=row-dr*d,nc=col-dc*d;if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&grid[nr][nc]===currentPlayer)cells.push([nr,nc]);else break}
+      if(cells.length>=4)return cells;
+    }
+    return null;
+  }
+
+  function updateScores(){srEl.textContent=scores.r;syEl.textContent=scores.y;sdEl.textContent=scores.d}
+
+  document.getElementById("new-btn").addEventListener("click",init);
+  document.getElementById("reset-btn").addEventListener("click",()=>{scores={r:0,y:0,d:0};updateScores()});
+  init();
+})();
+</script>
+</body>
+</html>

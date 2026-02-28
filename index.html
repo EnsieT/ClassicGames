@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Classic Games</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0f0f1a;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', 'Consolas', monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      text-align: center;
+      max-width: 900px;
+      padding: 40px 20px;
+    }
+    h1 {
+      font-size: 2.8rem;
+      letter-spacing: 0.5rem;
+      color: #00e5ff;
+      text-shadow: 0 0 18px #00e5ff66;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: #666;
+      font-size: 0.95rem;
+      margin-bottom: 48px;
+    }
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+    }
+    .game-card {
+      background: #1a1a2e;
+      border: 2px solid #333;
+      border-radius: 12px;
+      padding: 24px 18px;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .game-card:hover {
+      transform: translateY(-4px);
+      border-color: #00e5ff;
+      box-shadow: 0 8px 30px #00e5ff22;
+    }
+    .game-icon {
+      font-size: 3.2rem;
+      line-height: 1;
+    }
+    .game-card h2 {
+      font-size: 1.3rem;
+      color: #fff;
+      letter-spacing: 0.15rem;
+    }
+    .game-card p {
+      font-size: 0.82rem;
+      color: #888;
+      line-height: 1.5;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: #00e5ff22;
+      color: #00e5ff;
+      border: 1px solid #00e5ff44;
+      letter-spacing: 0.05rem;
+    }
+    footer {
+      margin-top: 60px;
+      font-size: 0.75rem;
+      color: #444;
+    }
+    footer a { color: #00e5ff; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>CLASSIC GAMES</h1>
+    <p class="subtitle">Pick a game and start playing — no installs needed</p>
+
+    <div class="game-grid">
+      <a href="tetris.html" class="game-card">
+        <div class="game-icon">🧱</div>
+        <h2>TETRIS</h2>
+        <p>Stack falling blocks, clear lines, chase high scores.</p>
+        <span class="badge">1 PLAYER</span>
+      </a>
+
+      <a href="snake.html" class="game-card">
+        <div class="game-icon">🐍</div>
+        <h2>SNAKE</h2>
+        <p>Eat food, grow longer, don't hit the walls or yourself.</p>
+        <span class="badge">1 PLAYER</span>
+      </a>
+
+      <a href="2048.html" class="game-card">
+        <div class="game-icon">🔢</div>
+        <h2>2048</h2>
+        <p>Slide and merge tiles to reach the magic 2048 number.</p>
+        <span class="badge">1 PLAYER</span>
+      </a>
+
+      <a href="breakout.html" class="game-card">
+        <div class="game-icon">🏓</div>
+        <h2>BREAKOUT</h2>
+        <p>Bounce the ball, smash bricks, clear levels.</p>
+        <span class="badge">1 PLAYER</span>
+      </a>
+
+      <a href="flappy.html" class="game-card">
+        <div class="game-icon">🐦</div>
+        <h2>FLAPPY BIRD</h2>
+        <p>Tap to flap, dodge the pipes, survive as long as you can.</p>
+        <span class="badge">1 PLAYER</span>
+      </a>
+
+      <a href="minesweeper.html" class="game-card">
+        <div class="game-icon">💣</div>
+        <h2>MINESWEEPER</h2>
+        <p>Reveal squares, flag mines, clear the board. Three difficulty levels.</p>
+        <span class="badge">1 PLAYER</span>
+      </a>
+
+      <a href="sudoku.html" class="game-card">
+        <div class="game-icon">🔠</div>
+        <h2>SUDOKU</h2>
+        <p>Fill the 9×9 grid with numbers. Easy, medium, or hard puzzles.</p>
+        <span class="badge">1 PLAYER</span>
+      </a>
+
+      <a href="wordle.html" class="game-card">
+        <div class="game-icon">📝</div>
+        <h2>WORDLE</h2>
+        <p>Guess the 5-letter word in 6 tries with color-coded hints.</p>
+        <span class="badge">1 PLAYER</span>
+      </a>
+
+      <a href="simon.html" class="game-card">
+        <div class="game-icon">🎵</div>
+        <h2>SIMON SAYS</h2>
+        <p>Watch the pattern, repeat it back. How far can you go?</p>
+        <span class="badge">1 PLAYER</span>
+      </a>
+
+      <a href="digits.html" class="game-card">
+        <div class="game-icon">🔢</div>
+        <h2>DIGITS</h2>
+        <p>Combine numbers with +, −, ×, ÷ to reach the target. 12 puzzles!</p>
+        <span class="badge">1 PLAYER</span>
+      </a>
+
+      <a href="tictactoe.html" class="game-card">
+        <div class="game-icon">⭕</div>
+        <h2>TIC TAC TOE</h2>
+        <p>Classic and Move variant — two modes, pass and play.</p>
+        <span class="badge">2 PLAYERS</span>
+      </a>
+
+      <a href="connect4.html" class="game-card">
+        <div class="game-icon">🔴</div>
+        <h2>CONNECT FOUR</h2>
+        <p>Drop discs, connect 4 in a row to win. Classic strategy.</p>
+        <span class="badge">2 PLAYERS</span>
+      </a>
+
+      <a href="pong.html" class="game-card">
+        <div class="game-icon">🏸</div>
+        <h2>PONG</h2>
+        <p>The original arcade game. Two paddles, one ball, pure rivalry.</p>
+        <span class="badge">2 PLAYERS</span>
+      </a>
+
+      <a href="checkers.html" class="game-card">
+        <div class="game-icon">♟️</div>
+        <h2>CHECKERS</h2>
+        <p>Jump and capture your opponent's pieces. Kings rule the board.</p>
+        <span class="badge">2 PLAYERS</span>
+      </a>
+    </div>
+
+    <footer>
+      Built with vanilla HTML, CSS &amp; JS &mdash; host free on <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>
+    </footer>
+  </div>
+</body>
+</html>
