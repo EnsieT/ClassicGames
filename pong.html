@@ -47,7 +47,7 @@
       <ul>
         <li><kbd>W</kbd> / <kbd>S</kbd> — Player 1 (left paddle)</li>
         <li><kbd>↑</kbd> / <kbd>↓</kbd> — Player 2 (right paddle)</li>
-        <li><kbd>Enter</kbd> Start &nbsp; <kbd>P</kbd> Pause</li>
+        <li><kbd>Enter</kbd> or <kbd>Click</kbd> Start &nbsp; <kbd>P</kbd> Pause</li>
       </ul>
     </div></details>
     <div id="scoreboard">
@@ -62,13 +62,13 @@
       <canvas id="c" width="600" height="380"></canvas>
       <div id="overlay" class="overlay">
         <h2 id="ot">PONG</h2>
-        <p id="om">Press ENTER to Start</p>
+        <p id="om">Click or press ENTER to Start</p>
       </div>
     </div>
     <div id="controls">
       <span>W / S Player 1</span>
       <span>↑ / ↓ Player 2</span>
-      <span>ENTER Start</span>
+      <span>ENTER / Click Start</span>
       <span>P Pause</span>
     </div>
   </div>
@@ -147,7 +147,7 @@
   }
 
   function win(who){
-    running=false;ot.textContent=who+" Wins!";om.textContent="Press ENTER to Play Again";overlay.classList.remove("hidden");
+    running=false;ot.textContent=who+" Wins!";om.textContent="Click or press ENTER to Play Again";overlay.classList.remove("hidden");
   }
 
   document.addEventListener("keydown",e=>{
@@ -161,6 +161,10 @@
     if(["ArrowUp","ArrowDown"," "].includes(e.key))e.preventDefault();
   });
   document.addEventListener("keyup",e=>{keys[e.key.toLowerCase()]=false});
+  
+  // Click overlay to start/restart (mobile support)
+  overlay.addEventListener("click",()=>{if(!paused)init()});
+  
   draw();
 })();
 </script>

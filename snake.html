@@ -47,7 +47,7 @@
       <h4>CONTROLS</h4>
       <ul>
         <li><kbd>←</kbd> <kbd>↑</kbd> <kbd>↓</kbd> <kbd>→</kbd> Change direction</li>
-        <li><kbd>Enter</kbd> Start / Restart</li>
+        <li><kbd>Enter</kbd> or <kbd>Click</kbd> Start / Restart</li>
       </ul>
     </div></details>
     <div id="info">
@@ -58,7 +58,7 @@
       <canvas id="canvas" width="400" height="400"></canvas>
       <div id="overlay" class="overlay">
         <h2 id="overlay-title">SNAKE</h2>
-        <p id="overlay-msg">Press ENTER to Start</p>
+        <p id="overlay-msg">Click or press ENTER to Start</p>
       </div>
     </div>
     <div class="high-scores">
@@ -67,7 +67,7 @@
     </div>
     <div id="controls">
       <span>← → ↑ ↓ Move</span>
-      <span>ENTER Start/Restart</span>
+      <span>ENTER / Click Start/Restart</span>
     </div>
   </div>
 <script>
@@ -122,7 +122,7 @@
   function endGame(){
     gameOver=true;clearInterval(interval);
     addHS(score);highEl.textContent=bestHS().toLocaleString();
-    overlayTitle.textContent="GAME OVER";overlayMsg.textContent=`Score: ${score} — Press ENTER to Retry`;
+    overlayTitle.textContent="GAME OVER";overlayMsg.textContent=`Score: ${score} — Click or press ENTER to Retry`;
     overlay.classList.remove("hidden");
   }
 
@@ -137,6 +137,9 @@
     }
     e.preventDefault();
   });
+
+  // Click overlay to start/restart (mobile support)
+  overlay.addEventListener("click",()=>{if(gameOver||!interval)init()});
 
   renderHS();highEl.textContent=bestHS().toLocaleString();draw=function(){ctx.clearRect(0,0,canvas.width,canvas.height)};draw();
 })();

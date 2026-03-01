@@ -43,7 +43,7 @@
       <h4>CONTROLS</h4>
       <ul>
         <li><kbd>←</kbd> <kbd>→</kbd> or <kbd>Mouse</kbd> Move paddle</li>
-        <li><kbd>Enter</kbd> Start / Restart</li>
+        <li><kbd>Enter</kbd> or <kbd>Click</kbd> Start / Restart</li>
       </ul>
     </div></details>
     <div id="info">
@@ -55,12 +55,12 @@
       <canvas id="c" width="480" height="400"></canvas>
       <div id="overlay" class="overlay">
         <h2 id="ot">BREAKOUT</h2>
-        <p id="om">Press ENTER to Start</p>
+        <p id="om">Click or press ENTER to Start</p>
       </div>
     </div>
     <div id="controls">
       <span>← → / Mouse Move paddle</span>
-      <span>ENTER Start/Restart</span>
+      <span>ENTER / Click Start/Restart</span>
     </div>
   </div>
 <script>
@@ -151,7 +151,7 @@
   }
 
   function endGame(){
-    running=false;ot.textContent="GAME OVER";om.textContent=`Score: ${score} — Press ENTER to Retry`;overlay.classList.remove("hidden");
+    running=false;ot.textContent="GAME OVER";om.textContent=`Score: ${score} — Click or press ENTER to Retry`;overlay.classList.remove("hidden");
   }
 
   document.addEventListener("keydown",e=>{
@@ -161,6 +161,10 @@
   });
   document.addEventListener("keyup",e=>{if(e.key==="ArrowLeft")leftPressed=false;if(e.key==="ArrowRight")rightPressed=false});
   canvas.addEventListener("mousemove",e=>{const rect=canvas.getBoundingClientRect();paddleX=Math.min(Math.max(0,(e.clientX-rect.left)*(W/rect.width)-PADDLE_W/2),W-PADDLE_W)});
+  
+  // Click overlay to start/restart (mobile support)
+  overlay.addEventListener("click",()=>init());
+  
   draw();
 })();
 </script>

@@ -423,7 +423,7 @@
       playerNameIn.value = "";
       playerNameIn.focus();
     } else {
-      overlayMsg.textContent = `Score: ${score.toLocaleString()} — Press ENTER to Retry`;
+      overlayMsg.textContent = `Score: ${score.toLocaleString()} — Click or press ENTER to Retry`;
       gameOverForm.classList.add("hidden");
     }
     overlay.classList.remove("hidden");
@@ -508,12 +508,23 @@
     const name = playerNameIn.value.trim() || "AAA";
     addHighScore(name, score);
     gameOverForm.classList.add("hidden");
-    overlayMsg.textContent = "Press ENTER to Play Again";
+    overlayMsg.textContent = "Click or press ENTER to Play Again";
   }
 
   saveScoreBtn.addEventListener("click", submitScore);
   playerNameIn.addEventListener("keydown", (e) => {
     if (e.key === "Enter") { e.stopPropagation(); submitScore(); }
+  });
+
+  /* Click overlay to start/restart game (mobile support) */
+  overlay.addEventListener("click", () => {
+    if (!gameRunning && !paused) {
+      if (!gameOverForm.classList.contains("hidden")) {
+        // Don't start game if form is visible - let user save score first
+        return;
+      }
+      startGame();
+    }
   });
 
   /* ── Init ──────────────────────────────────────────── */
