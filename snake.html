@@ -31,6 +31,23 @@
     details.rules .rules-body{padding:4px 14px 12px}details.rules .rules-body h4{color:#00e5ff;font-size:.75rem;margin:8px 0 4px;letter-spacing:.06rem}
     details.rules .rules-body ul{padding-left:16px;margin:0}details.rules .rules-body li{margin:2px 0;line-height:1.5}
     details.rules .rules-body kbd{background:#252542;border:1px solid #444;border-radius:3px;padding:1px 5px;font-size:.72rem;color:#ccc}
+    #mobile-dpad{display:none;flex-direction:column;gap:4px;margin:0 auto}
+    .dpad-row{display:flex;justify-content:center;gap:4px}
+    .dpad-btn{width:56px;height:56px;border:2px solid #00e5ff;border-radius:12px;background:#1a1a2e;color:#00e5ff;font-size:1.5rem;font-weight:700;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;transition:background .1s,transform .1s}
+    .dpad-btn:active{background:#00e5ff33;transform:scale(.93)}
+    .dpad-spacer{width:56px;height:56px}
+    @media(max-width:600px){
+      html,body{overscroll-behavior:none}
+      body{align-items:flex-start;overflow:hidden}
+      #app{height:100vh;height:100dvh;padding:8px 8px 12px;gap:6px;justify-content:flex-start;width:100%}
+      h1{font-size:1.3rem;letter-spacing:.3rem}
+      details.rules{display:none}
+      #board-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+      canvas{width:min(80vw,calc(100dvh - 280px));height:min(80vw,calc(100dvh - 280px));touch-action:none}
+      .high-scores{display:none}
+      #controls{display:none}
+      #mobile-dpad{display:flex}
+    }
   </style>
 </head>
 <body>
@@ -68,6 +85,15 @@
     <div id="controls">
       <span>← → ↑ ↓ Move</span>
       <span>ENTER / Click Start/Restart</span>
+    </div>
+    <div id="mobile-dpad">
+      <div class="dpad-row"><button class="dpad-btn" data-dir="up" aria-label="Up">▲</button></div>
+      <div class="dpad-row">
+        <button class="dpad-btn" data-dir="left" aria-label="Left">◀</button>
+        <div class="dpad-spacer"></div>
+        <button class="dpad-btn" data-dir="right" aria-label="Right">▶</button>
+      </div>
+      <div class="dpad-row"><button class="dpad-btn" data-dir="down" aria-label="Down">▼</button></div>
     </div>
   </div>
 <script>
@@ -140,6 +166,25 @@
 
   // Click overlay to start/restart (mobile support)
   overlay.addEventListener("click",()=>{if(gameOver||!interval)init()});
+
+  // Mobile D-pad controls
+  document.querySelectorAll(".dpad-btn").forEach(btn=>{
+    function handleDir(){
+      const d=btn.dataset.dir;
+      if(gameOver||!interval){init();return}
+      switch(d){
+        case"up":if(dir.y!==1)nextDir={x:0,y:-1};break;
+        case"down":if(dir.y!==-1)nextDir={x:0,y:1};break;
+        case"left":if(dir.x!==1)nextDir={x:-1,y:0};break;
+        case"right":if(dir.x!==-1)nextDir={x:1,y:0};break;
+      }
+    }
+    btn.addEventListener("touchstart",e=>{e.preventDefault();handleDir()});
+    btn.addEventListener("click",e=>{e.preventDefault();handleDir()});
+  });
+  // Prevent canvas touch scroll
+  canvas.addEventListener("touchstart",e=>e.preventDefault(),{passive:false});
+  canvas.addEventListener("touchmove",e=>e.preventDefault(),{passive:false});
 
   renderHS();highEl.textContent=bestHS().toLocaleString();draw=function(){ctx.clearRect(0,0,canvas.width,canvas.height)};draw();
 })();

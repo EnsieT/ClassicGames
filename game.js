@@ -527,6 +527,72 @@
     }
   });
 
+  /* ── Mobile touch controls ─────────────────────────── */
+  (function initMobileControls() {
+    const mc = document.getElementById("mobile-controls");
+    if (!mc) return;
+
+    // Prevent scrolling on board canvas touch
+    boardCanvas.addEventListener("touchstart", (e) => e.preventDefault(), { passive: false });
+    boardCanvas.addEventListener("touchmove", (e) => e.preventDefault(), { passive: false });
+
+    let repeatTimer = null;
+    function clearRepeat() {
+      if (repeatTimer) { clearInterval(repeatTimer); repeatTimer = null; }
+    }
+
+    mc.querySelectorAll(".mc-btn").forEach(btn => {
+      const action = btn.dataset.action;
+      const repeatable = action === "left" || action === "right" || action === "down";
+
+      function doAction() {
+        if (!gameRunning || paused) return;
+        switch (action) {
+          case "left":   move(0, -1); break;
+          case "right":  move(0,  1); break;
+          case "down":   if (move(1, 0)) { score += 1; updateHUD(); } break;
+          case "rotate": rotate(1); break;
+          case "drop":   hardDrop(); break;
+          case "hold":   holdPiece(); break;
+          case "pause":  togglePause(); break;
+        }
+      }
+
+      btn.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        // Start game if not running
+        if (!gameRunning && !paused) {
+          if (!gameOverForm.classList.contains("hidden")) return;
+          startGame();
+          return;
+        }
+        if (action === "pause") { togglePause(); return; }
+        if (paused) return;
+        doAction();
+        if (repeatable) {
+          clearRepeat();
+          repeatTimer = setInterval(doAction, 85);
+        }
+      });
+
+      btn.addEventListener("touchend", (e) => { e.preventDefault(); clearRepeat(); });
+      btn.addEventListener("touchcancel", clearRepeat);
+
+      // Click fallback for desktop testing
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (!gameRunning && !paused) {
+          if (!gameOverForm.classList.contains("hidden")) return;
+          startGame();
+          return;
+        }
+        if (action === "pause") { togglePause(); return; }
+        if (paused) return;
+        doAction();
+      });
+    });
+  })();
+
   /* ── Init ──────────────────────────────────────────── */
   renderHighScores();
   drawBoard();   // draw empty board behind overlay
