@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Jigsaw Puzzle — Classic Games</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0f0f1a;color:#e0e0e0;font-family:'Segoe UI','Consolas',monospace;display:flex;justify-content:center;align-items:center;min-height:100vh;user-select:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+    #app{display:flex;flex-direction:column;align-items:center;gap:14px;padding:20px;width:100%;max-width:620px}
+    .back-link{align-self:flex-start;color:#00e5ff;text-decoration:none;font-size:.85rem}.back-link:hover{color:#fff}
+    h1{font-size:2rem;letter-spacing:.5rem;color:#00e5ff;text-shadow:0 0 12px #00e5ff88}
+    #info{display:flex;gap:24px;font-size:1rem;flex-wrap:wrap;justify-content:center}#info span{color:#888}#info strong{color:#fff}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+    button.action{background:#1a1a2e;border:2px solid #333;color:#ccc;padding:8px 16px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.82rem;transition:border-color .2s,color .2s}
+    button.action:hover{border-color:#00e5ff;color:#fff}
+    button.action.active{border-color:#00e5ff;color:#00e5ff}
+    select.action{background:#1a1a2e;border:2px solid #333;color:#ccc;padding:8px 12px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.82rem;transition:border-color .2s}
+    select.action:hover,select.action:focus{border-color:#00e5ff;color:#fff;outline:none}
+    select.action option{background:#1a1a2e;color:#ccc}
+    #board-wrap{position:relative;display:flex;justify-content:center}
+    #puzzle-grid{display:grid;gap:3px;border-radius:6px;overflow:hidden}
+    .piece{border-radius:3px;cursor:pointer;transition:transform .15s,box-shadow .15s,opacity .15s;image-rendering:pixelated;image-rendering:crisp-edges;position:relative;overflow:hidden;touch-action:manipulation}
+    .piece canvas{display:block;width:100%;height:100%}
+    .piece:hover{transform:scale(1.04);z-index:2}
+    .piece.selected{box-shadow:0 0 0 3px #00e5ff,0 0 16px #00e5ff66;transform:scale(1.06);z-index:3}
+    .piece.correct{box-shadow:inset 0 0 0 2px #4caf5066}
+    .overlay{position:absolute;inset:0;background:rgba(0,0,0,.82);display:flex;justify-content:center;align-items:center;border-radius:6px;z-index:10;flex-direction:column;gap:12px;padding:20px}
+    .overlay.hidden{display:none}
+    .overlay h2{font-size:1.5rem;color:#00e5ff;text-align:center}.overlay p{color:#ccc;font-size:.9rem;text-align:center}
+    .overlay .stats{color:#888;font-size:.8rem}
+    #preview-wrap{position:relative;display:none;justify-content:center}
+    #preview-wrap canvas{border:3px solid #00e5ff;border-radius:6px;max-width:100%}
+    #preview-label{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:#00e5ff;padding:2px 12px;border-radius:4px;font-size:.72rem;letter-spacing:.1rem}
+    details.rules{background:#1a1a2e;border:1px solid #333;border-radius:8px;padding:0;margin:8px auto;max-width:420px;width:100%;font-size:.78rem;color:#aaa}
+    details.rules summary{cursor:pointer;padding:8px 14px;color:#888;font-size:.8rem;letter-spacing:.08rem;list-style:none;user-select:none}
+    details.rules summary::-webkit-details-marker{display:none}
+    details.rules summary::before{content:"▸ ";color:#00e5ff}details.rules[open] summary::before{content:"▾ "}
+    details.rules .rules-body{padding:4px 14px 12px}details.rules .rules-body h4{color:#00e5ff;font-size:.75rem;margin:8px 0 4px;letter-spacing:.06rem}
+    details.rules .rules-body ul{padding-left:16px;margin:0}details.rules .rules-body li{margin:2px 0;line-height:1.5}
+    .confetti-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:100}
+    @media(max-width:500px){
+      html,body{overscroll-behavior:none}
+      h1{font-size:1.4rem;letter-spacing:.3rem}
+      #info{font-size:.85rem;gap:14px}
+      #app{padding:12px 8px;gap:10px}
+      .toolbar{gap:6px}
+      button.action,select.action{padding:6px 10px;font-size:.75rem}
+      #preview-wrap canvas{max-width:90vw;height:auto}
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <a href="index.html" class="back-link">← Back to Games</a>
+    <h1>JIGSAW</h1>
+    <details class="rules"><summary>Rules &amp; Controls</summary><div class="rules-body">
+      <h4>HOW TO PLAY</h4>
+      <ul>
+        <li>Click or tap a puzzle piece to select it (highlighted in blue)</li>
+        <li>Click or tap a second piece to swap them</li>
+        <li>Arrange all pieces to recreate the original picture</li>
+        <li>Pieces in the correct position get a subtle green border</li>
+      </ul>
+      <h4>FEATURES</h4>
+      <ul>
+        <li>Choose a picture from the dropdown</li>
+        <li>Pick difficulty: Easy (3×3), Medium (4×4), or Hard (5×5)</li>
+        <li>Use <strong>Preview</strong> to peek at the completed image</li>
+        <li>Use <strong>New Game</strong> to shuffle and start over</li>
+      </ul>
+    </div></details>
+
+    <div id="info">
+      <span>Moves: <strong id="moves">0</strong></span>
+      <span>Time: <strong id="timer">0:00</strong></span>
+      <span>Pieces: <strong id="piece-count">9</strong></span>
+    </div>
+
+    <div class="toolbar">
+      <select id="scene-select" class="action">
+        <option value="house">🏠 House</option>
+        <option value="ocean">🌊 Ocean</option>
+        <option value="space">🚀 Space</option>
+        <option value="forest">🌲 Forest</option>
+      </select>
+      <select id="diff-select" class="action">
+        <option value="3">Easy (3×3)</option>
+        <option value="4">Medium (4×4)</option>
+        <option value="5">Hard (5×5)</option>
+      </select>
+      <button id="btn-new" class="action">🔀 New Game</button>
+      <button id="btn-preview" class="action">👁 Preview</button>
+    </div>
+
+    <div id="preview-wrap">
+      <canvas id="preview-canvas" width="360" height="360"></canvas>
+      <div id="preview-label">PREVIEW</div>
+    </div>
+
+    <div id="board-wrap">
+      <div id="puzzle-grid"></div>
+      <div id="win-overlay" class="overlay hidden">
+        <h2>🎉 Puzzle Complete!</h2>
+        <p id="win-msg">Great job!</p>
+        <p class="stats" id="win-stats"></p>
+        <button class="action" id="btn-play-again">Play Again</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  /* ── STATE ── */
+  let gridSize = 3;
+  let scene = 'house';
+  let pieces = [];        // current order: pieces[i] = original index
+  let selected = -1;
+  let moves = 0;
+  let timerStart = 0;
+  let timerInterval = null;
+  let solved = false;
+  let previewShown = false;
+  const MAX_BOARD = 360;
+  let BOARD_PX = MAX_BOARD;
+
+  function calcBoardSize(){
+    const available = Math.min(window.innerWidth - 40, MAX_BOARD);
+    BOARD_PX = Math.max(200, Math.floor(available));
+  }
+
+  /* ── DOM ── */
+  const grid      = document.getElementById('puzzle-grid');
+  const movesEl   = document.getElementById('moves');
+  const timerEl   = document.getElementById('timer');
+  const countEl   = document.getElementById('piece-count');
+  const winOvl    = document.getElementById('win-overlay');
+  const winMsg    = document.getElementById('win-msg');
+  const winStats  = document.getElementById('win-stats');
+  const btnNew    = document.getElementById('btn-new');
+  const btnPrev   = document.getElementById('btn-preview');
+  const btnAgain  = document.getElementById('btn-play-again');
+  const diffSel   = document.getElementById('diff-select');
+  const sceneSel  = document.getElementById('scene-select');
+  const prevWrap  = document.getElementById('preview-wrap');
+  const prevCanvas= document.getElementById('preview-canvas');
+
+  /* ── AUDIO CONTEXT (lazy) ── */
+  let audioCtx = null;
+  function beep(freq, dur){
+    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = 'sine'; o.frequency.value = freq;
+    g.gain.value = 0.1;
+    o.start(); g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+    o.stop(audioCtx.currentTime + dur);
+  }
+  function playSwap(){ beep(520, 0.08); }
+  function playWin(){
+    [523,659,784,1047].forEach((f,i) => setTimeout(()=>beep(f,0.15), i*120));
+  }
+
+  /* ── SCENE DRAWING ── */
+  function drawScene(ctx, w, h, name){
+    // clear
+    ctx.clearRect(0,0,w,h);
+    switch(name){
+      case 'house': drawHouse(ctx,w,h); break;
+      case 'ocean': drawOcean(ctx,w,h); break;
+      case 'space': drawSpace(ctx,w,h); break;
+      case 'forest': drawForest(ctx,w,h); break;
+      default: drawHouse(ctx,w,h);
+    }
+  }
+
+  function drawHouse(ctx,w,h){
+    // sky gradient
+    let g = ctx.createLinearGradient(0,0,0,h);
+    g.addColorStop(0,'#87CEEB'); g.addColorStop(0.6,'#b6e3f4'); g.addColorStop(1,'#5dbb63');
+    ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+    // sun
+    ctx.fillStyle='#FFD700'; ctx.beginPath(); ctx.arc(w*0.82,h*0.15,w*0.09,0,Math.PI*2); ctx.fill();
+    // rays
+    ctx.strokeStyle='#FFD70088'; ctx.lineWidth=3;
+    for(let a=0;a<Math.PI*2;a+=Math.PI/6){
+      ctx.beginPath(); ctx.moveTo(w*0.82+Math.cos(a)*w*0.1,h*0.15+Math.sin(a)*w*0.1);
+      ctx.lineTo(w*0.82+Math.cos(a)*w*0.14,h*0.15+Math.sin(a)*w*0.14); ctx.stroke();
+    }
+    // clouds
+    drawCloud(ctx, w*0.2, h*0.12, w*0.12);
+    drawCloud(ctx, w*0.55, h*0.08, w*0.10);
+    // grass
+    ctx.fillStyle='#5dbb63'; ctx.fillRect(0,h*0.6,w,h*0.4);
+    // flowers
+    for(let i=0;i<8;i++){
+      let fx=w*0.05+Math.random()*w*0.9, fy=h*0.65+Math.random()*h*0.3;
+      ctx.fillStyle=['#f44','#ff0','#f0f','#ff6347','#ff69b4'][i%5];
+      ctx.beginPath(); ctx.arc(fx,fy,w*0.015,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#2e7d32'; ctx.fillRect(fx-1,fy,2,h*0.03);
+    }
+    // house body
+    ctx.fillStyle='#D2691E'; ctx.fillRect(w*0.25,h*0.38,w*0.5,h*0.32);
+    // roof
+    ctx.fillStyle='#8B0000'; ctx.beginPath();
+    ctx.moveTo(w*0.2,h*0.38); ctx.lineTo(w*0.5,h*0.18); ctx.lineTo(w*0.8,h*0.38); ctx.closePath(); ctx.fill();
+    // door
+    ctx.fillStyle='#654321'; ctx.fillRect(w*0.43,h*0.52,w*0.14,h*0.18);
+    ctx.fillStyle='#FFD700'; ctx.beginPath(); ctx.arc(w*0.54,h*0.62,w*0.012,0,Math.PI*2); ctx.fill();
+    // windows
+    ctx.fillStyle='#87CEEB'; ctx.strokeStyle='#fff'; ctx.lineWidth=2;
+    [[0.3,0.44,0.1,0.08],[0.6,0.44,0.1,0.08]].forEach(([x,y,bw,bh])=>{
+      ctx.fillRect(w*x,h*y,w*bw,h*bh); ctx.strokeRect(w*x,h*y,w*bw,h*bh);
+      ctx.beginPath(); ctx.moveTo(w*x+w*bw/2,h*y); ctx.lineTo(w*x+w*bw/2,h*y+h*bh); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(w*x,h*y+h*bh/2); ctx.lineTo(w*x+w*bw,h*y+h*bh/2); ctx.stroke();
+    });
+    // tree
+    ctx.fillStyle='#4a2c0a'; ctx.fillRect(w*0.08,h*0.4,w*0.04,h*0.25);
+    ctx.fillStyle='#228B22'; ctx.beginPath(); ctx.arc(w*0.1,h*0.35,w*0.08,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(w*0.1,h*0.28,w*0.06,0,Math.PI*2); ctx.fill();
+    // chimney
+    ctx.fillStyle='#8B4513'; ctx.fillRect(w*0.62,h*0.18,w*0.06,h*0.12);
+    // fence
+    ctx.strokeStyle='#fff'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(0,h*0.68); ctx.lineTo(w*0.22,h*0.68); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(w*0.78,h*0.68); ctx.lineTo(w,h*0.68); ctx.stroke();
+    for(let x=0;x<w*0.22;x+=w*0.05){ ctx.fillStyle='#fff'; ctx.fillRect(x,h*0.63,w*0.015,h*0.08); }
+    for(let x=w*0.78;x<w;x+=w*0.05){ ctx.fillStyle='#fff'; ctx.fillRect(x,h*0.63,w*0.015,h*0.08); }
+    // path
+    ctx.fillStyle='#d2b48c';
+    ctx.beginPath(); ctx.moveTo(w*0.43,h*0.7); ctx.lineTo(w*0.57,h*0.7);
+    ctx.lineTo(w*0.6,h); ctx.lineTo(w*0.4,h); ctx.closePath(); ctx.fill();
+  }
+
+  function drawOcean(ctx,w,h){
+    let g=ctx.createLinearGradient(0,0,0,h);
+    g.addColorStop(0,'#ff7043'); g.addColorStop(0.3,'#ffb74d'); g.addColorStop(0.45,'#4fc3f7'); g.addColorStop(1,'#01579b');
+    ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+    // sun setting
+    ctx.fillStyle='#FF6347'; ctx.beginPath(); ctx.arc(w*0.5,h*0.32,w*0.12,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#FFD700'; ctx.beginPath(); ctx.arc(w*0.5,h*0.32,w*0.09,0,Math.PI*2); ctx.fill();
+    // water waves
+    for(let y=h*0.45;y<h;y+=h*0.06){
+      ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=2;
+      ctx.beginPath();
+      for(let x=0;x<w;x+=2){
+        ctx.lineTo(x, y+Math.sin(x*0.04+y)*h*0.015);
+      }
+      ctx.stroke();
+    }
+    // boat
+    ctx.fillStyle='#8D6E63';
+    ctx.beginPath(); ctx.moveTo(w*0.3,h*0.52); ctx.lineTo(w*0.7,h*0.52);
+    ctx.lineTo(w*0.65,h*0.58); ctx.lineTo(w*0.35,h*0.58); ctx.closePath(); ctx.fill();
+    // mast
+    ctx.strokeStyle='#5D4037'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(w*0.5,h*0.52); ctx.lineTo(w*0.5,h*0.32); ctx.stroke();
+    // sail
+    ctx.fillStyle='#FFFFFF'; ctx.beginPath();
+    ctx.moveTo(w*0.5,h*0.34); ctx.lineTo(w*0.62,h*0.5); ctx.lineTo(w*0.5,h*0.5); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#FFE0B2'; ctx.beginPath();
+    ctx.moveTo(w*0.5,h*0.36); ctx.lineTo(w*0.4,h*0.5); ctx.lineTo(w*0.5,h*0.5); ctx.closePath(); ctx.fill();
+    // birds
+    ctx.strokeStyle='#333'; ctx.lineWidth=1.5;
+    [[0.2,0.18],[0.25,0.15],[0.75,0.2],[0.8,0.17]].forEach(([bx,by])=>{
+      ctx.beginPath(); ctx.arc(w*bx-5,h*by,6,Math.PI+0.3,Math.PI*2-0.3); ctx.stroke();
+      ctx.beginPath(); ctx.arc(w*bx+5,h*by,6,Math.PI+0.3,Math.PI*2-0.3); ctx.stroke();
+    });
+    // fish
+    ctx.fillStyle='#FF8A65';
+    ctx.beginPath(); ctx.ellipse(w*0.25,h*0.75,w*0.04,h*0.02,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(w*0.21,h*0.75); ctx.lineTo(w*0.17,h*0.72); ctx.lineTo(w*0.17,h*0.78); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(w*0.28,h*0.745,2,0,Math.PI*2); ctx.fill();
+    // island in distance
+    ctx.fillStyle='#2E7D32';
+    ctx.beginPath(); ctx.ellipse(w*0.85,h*0.44,w*0.08,h*0.03,0,Math.PI,Math.PI*2); ctx.fill();
+    // palm tree on island
+    ctx.strokeStyle='#5D4037'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(w*0.85,h*0.44); ctx.quadraticCurveTo(w*0.86,h*0.38,w*0.87,h*0.36); ctx.stroke();
+    ctx.fillStyle='#4CAF50';
+    ctx.beginPath(); ctx.ellipse(w*0.87,h*0.355,w*0.03,h*0.01,-0.3,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(w*0.87,h*0.355,w*0.025,h*0.01,0.4,0,Math.PI*2); ctx.fill();
+  }
+
+  function drawSpace(ctx,w,h){
+    // background
+    let g=ctx.createLinearGradient(0,0,0,h);
+    g.addColorStop(0,'#0a0020'); g.addColorStop(0.5,'#1a0044'); g.addColorStop(1,'#0a0020');
+    ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+    // stars
+    let seed=42;
+    function srand(){ seed=(seed*16807)%2147483647; return(seed-1)/2147483646; }
+    for(let i=0;i<120;i++){
+      ctx.fillStyle=`rgba(255,255,255,${0.3+srand()*0.7})`;
+      ctx.beginPath(); ctx.arc(srand()*w,srand()*h,srand()*2+0.5,0,Math.PI*2); ctx.fill();
+    }
+    // nebula
+    let ng=ctx.createRadialGradient(w*0.7,h*0.3,0,w*0.7,h*0.3,w*0.3);
+    ng.addColorStop(0,'rgba(128,0,255,0.15)'); ng.addColorStop(1,'transparent');
+    ctx.fillStyle=ng; ctx.fillRect(0,0,w,h);
+    // planet
+    let pg=ctx.createRadialGradient(w*0.35,h*0.5,w*0.02,w*0.35,h*0.5,w*0.18);
+    pg.addColorStop(0,'#42A5F5'); pg.addColorStop(0.5,'#1565C0'); pg.addColorStop(1,'#0D47A1');
+    ctx.fillStyle=pg; ctx.beginPath(); ctx.arc(w*0.35,h*0.5,w*0.18,0,Math.PI*2); ctx.fill();
+    // planet ring
+    ctx.strokeStyle='rgba(200,200,255,0.4)'; ctx.lineWidth=4;
+    ctx.beginPath(); ctx.ellipse(w*0.35,h*0.5,w*0.28,w*0.06,0.2,0,Math.PI*2); ctx.stroke();
+    // small moon
+    ctx.fillStyle='#BDBDBD'; ctx.beginPath(); ctx.arc(w*0.6,h*0.35,w*0.035,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#9E9E9E';
+    ctx.beginPath(); ctx.arc(w*0.59,h*0.34,w*0.01,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(w*0.615,h*0.36,w*0.007,0,Math.PI*2); ctx.fill();
+    // rocket
+    ctx.fillStyle='#E0E0E0';
+    ctx.beginPath(); ctx.moveTo(w*0.78,h*0.3); ctx.lineTo(w*0.82,h*0.55); ctx.lineTo(w*0.74,h*0.55); ctx.closePath(); ctx.fill();
+    // rocket window
+    ctx.fillStyle='#00BCD4'; ctx.beginPath(); ctx.arc(w*0.78,h*0.4,w*0.02,0,Math.PI*2); ctx.fill();
+    // rocket fins
+    ctx.fillStyle='#F44336';
+    ctx.beginPath(); ctx.moveTo(w*0.74,h*0.55); ctx.lineTo(w*0.7,h*0.6); ctx.lineTo(w*0.74,h*0.5); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(w*0.82,h*0.55); ctx.lineTo(w*0.86,h*0.6); ctx.lineTo(w*0.82,h*0.5); ctx.closePath(); ctx.fill();
+    // rocket flame
+    ctx.fillStyle='#FF9800'; ctx.beginPath();
+    ctx.moveTo(w*0.76,h*0.55); ctx.lineTo(w*0.78,h*0.68); ctx.lineTo(w*0.8,h*0.55); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#FFEB3B'; ctx.beginPath();
+    ctx.moveTo(w*0.77,h*0.55); ctx.lineTo(w*0.78,h*0.63); ctx.lineTo(w*0.79,h*0.55); ctx.closePath(); ctx.fill();
+    // shooting star
+    ctx.strokeStyle='#fff'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(w*0.1,h*0.15); ctx.lineTo(w*0.25,h*0.22); ctx.stroke();
+    let sg=ctx.createLinearGradient(w*0.1,h*0.15,w*0.25,h*0.22);
+    sg.addColorStop(0,'rgba(255,255,255,0.8)'); sg.addColorStop(1,'transparent');
+    ctx.strokeStyle=sg; ctx.lineWidth=4;
+    ctx.beginPath(); ctx.moveTo(w*0.1,h*0.15); ctx.lineTo(w*0.25,h*0.22); ctx.stroke();
+  }
+
+  function drawForest(ctx,w,h){
+    // sky
+    let g=ctx.createLinearGradient(0,0,0,h*0.5);
+    g.addColorStop(0,'#1a237e'); g.addColorStop(1,'#4a148c');
+    ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+    // stars
+    let seed=99;
+    function srand(){ seed=(seed*16807)%2147483647; return(seed-1)/2147483646; }
+    for(let i=0;i<40;i++){
+      ctx.fillStyle=`rgba(255,255,255,${0.3+srand()*0.5})`;
+      ctx.beginPath(); ctx.arc(srand()*w,srand()*h*0.45,srand()*1.5+0.5,0,Math.PI*2); ctx.fill();
+    }
+    // moon
+    ctx.fillStyle='#FFF9C4'; ctx.beginPath(); ctx.arc(w*0.8,h*0.12,w*0.06,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(w*0.82,h*0.11,w*0.05,0,Math.PI*2); ctx.fill();
+    // ground
+    let gg=ctx.createLinearGradient(0,h*0.55,0,h);
+    gg.addColorStop(0,'#1B5E20'); gg.addColorStop(1,'#2E7D32');
+    ctx.fillStyle=gg; ctx.fillRect(0,h*0.55,w,h*0.45);
+    // path
+    ctx.fillStyle='#5D4037';
+    ctx.beginPath(); ctx.moveTo(w*0.4,h); ctx.lineTo(w*0.6,h);
+    ctx.quadraticCurveTo(w*0.55,h*0.7,w*0.52,h*0.55);
+    ctx.quadraticCurveTo(w*0.48,h*0.7,w*0.4,h); ctx.fill();
+    // trees at different depths
+    function drawTree(tx,ty,s,dark){
+      ctx.fillStyle=dark?'#3E2723':'#4E342E'; ctx.fillRect(tx-s*0.06,ty,s*0.12,s*0.35);
+      let colors=dark?['#1B5E20','#2E7D32','#388E3C']:['#2E7D32','#388E3C','#4CAF50'];
+      for(let i=0;i<3;i++){
+        ctx.fillStyle=colors[i]; ctx.beginPath();
+        ctx.moveTo(tx-s*(0.25-i*0.05),ty-s*i*0.2);
+        ctx.lineTo(tx,ty-s*(0.35+i*0.2));
+        ctx.lineTo(tx+s*(0.25-i*0.05),ty-s*i*0.2);
+        ctx.closePath(); ctx.fill();
+      }
+    }
+    // back trees
+    drawTree(w*0.1,h*0.58,h*0.4,true);
+    drawTree(w*0.3,h*0.56,h*0.45,true);
+    drawTree(w*0.7,h*0.57,h*0.42,true);
+    drawTree(w*0.9,h*0.58,h*0.38,true);
+    // front trees
+    drawTree(w*0.18,h*0.68,h*0.35,false);
+    drawTree(w*0.5,h*0.6,h*0.5,false);
+    drawTree(w*0.82,h*0.66,h*0.38,false);
+    // mushrooms
+    ctx.fillStyle='#F44336';
+    ctx.beginPath(); ctx.arc(w*0.25,h*0.82,w*0.025,Math.PI,0); ctx.fill();
+    ctx.fillStyle='#FFEBEE';
+    ctx.fillRect(w*0.245,h*0.82,w*0.012,h*0.03);
+    ctx.fillStyle='#fff';
+    ctx.beginPath(); ctx.arc(w*0.24,h*0.81,2,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(w*0.258,h*0.805,1.5,0,Math.PI*2); ctx.fill();
+    // fireflies
+    for(let i=0;i<12;i++){
+      let fx=srand()*w, fy=h*0.45+srand()*h*0.5;
+      ctx.fillStyle=`rgba(255,255,100,${0.3+srand()*0.6})`;
+      ctx.beginPath(); ctx.arc(fx,fy,2,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle=`rgba(255,255,100,0.1)`;
+      ctx.beginPath(); ctx.arc(fx,fy,6,0,Math.PI*2); ctx.fill();
+    }
+    // owl on a tree
+    ctx.fillStyle='#795548'; ctx.beginPath(); ctx.ellipse(w*0.5,h*0.42,w*0.025,h*0.025,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#FFD54F'; // eyes
+    ctx.beginPath(); ctx.arc(w*0.49,h*0.415,3,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(w*0.51,h*0.415,3,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#000';
+    ctx.beginPath(); ctx.arc(w*0.49,h*0.415,1.5,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(w*0.51,h*0.415,1.5,0,Math.PI*2); ctx.fill();
+  }
+
+  function drawCloud(ctx,x,y,r){
+    ctx.fillStyle='rgba(255,255,255,0.85)';
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x+r*0.8,y-r*0.15,r*0.7,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x-r*0.6,y+r*0.1,r*0.6,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x+r*0.3,y+r*0.3,r*0.5,0,Math.PI*2); ctx.fill();
+  }
+
+  /* ── GENERATE THE FULL IMAGE ── */
+  function generateImage(){
+    const c = document.createElement('canvas');
+    c.width = BOARD_PX; c.height = BOARD_PX;
+    drawScene(c.getContext('2d'), BOARD_PX, BOARD_PX, scene);
+    return c;
+  }
+
+  /* ── INIT / NEW GAME ── */
+  function startGame(){
+    calcBoardSize();
+    solved = false;
+    selected = -1;
+    moves = 0;
+    movesEl.textContent = '0';
+    clearInterval(timerInterval);
+    timerEl.textContent = '0:00';
+    winOvl.classList.add('hidden');
+    prevWrap.style.display = 'none';
+    previewShown = false;
+    btnPrev.classList.remove('active');
+
+    const total = gridSize * gridSize;
+    countEl.textContent = total;
+
+    // generate shuffled indices
+    pieces = Array.from({length: total}, (_,i) => i);
+    // Fisher-Yates ensuring at least one swap
+    for(let i = total-1; i > 0; i--){
+      let j = Math.floor(Math.random() * (i+1));
+      [pieces[i], pieces[j]] = [pieces[j], pieces[i]];
+    }
+    // make sure it's not already solved
+    if(pieces.every((v,i)=>v===i)){
+      [pieces[0], pieces[1]] = [pieces[1], pieces[0]];
+    }
+
+    const fullImg = generateImage();
+
+    // draw preview
+    const pCtx = prevCanvas.getContext('2d');
+    prevCanvas.width = BOARD_PX; prevCanvas.height = BOARD_PX;
+    pCtx.drawImage(fullImg,0,0);
+
+    // build grid
+    const cellPx = BOARD_PX / gridSize;
+    grid.style.gridTemplateColumns = `repeat(${gridSize}, ${cellPx}px)`;
+    grid.style.width = BOARD_PX + (gridSize-1)*3 + 'px';
+    grid.innerHTML = '';
+
+    for(let i = 0; i < total; i++){
+      const div = document.createElement('div');
+      div.className = 'piece';
+      div.style.width = cellPx + 'px';
+      div.style.height = cellPx + 'px';
+      div.dataset.pos = i;
+
+      const pc = document.createElement('canvas');
+      pc.width = cellPx; pc.height = cellPx;
+      drawPieceCanvas(pc, fullImg, pieces[i], cellPx);
+      div.appendChild(pc);
+
+      div.addEventListener('click', ()=> onPieceClick(i));
+      div.addEventListener('touchend', (e)=>{ e.preventDefault(); onPieceClick(i); });
+      grid.appendChild(div);
+    }
+
+    updateCorrectHighlights();
+
+    // start timer
+    timerStart = Date.now();
+    timerInterval = setInterval(updateTimer, 500);
+  }
+
+  function drawPieceCanvas(canvas, fullImg, origIdx, cellPx){
+    const sx = (origIdx % gridSize) * cellPx;
+    const sy = Math.floor(origIdx / gridSize) * cellPx;
+    canvas.getContext('2d').drawImage(fullImg, sx, sy, cellPx, cellPx, 0, 0, cellPx, cellPx);
+  }
+
+  /* ── PIECE CLICK / SWAP ── */
+  function onPieceClick(pos){
+    if(solved) return;
+    const divs = grid.children;
+
+    if(selected === -1){
+      selected = pos;
+      divs[pos].classList.add('selected');
+    } else if(selected === pos){
+      divs[pos].classList.remove('selected');
+      selected = -1;
+    } else {
+      // swap
+      swapPieces(selected, pos);
+      divs[selected].classList.remove('selected');
+      selected = -1;
+      moves++;
+      movesEl.textContent = moves;
+      playSwap();
+
+      updateCorrectHighlights();
+
+      if(pieces.every((v,i)=>v===i)){
+        onWin();
+      }
+    }
+  }
+
+  function swapPieces(a, b){
+    [pieces[a], pieces[b]] = [pieces[b], pieces[a]];
+    const divs = grid.children;
+    const canvasA = divs[a].querySelector('canvas');
+    const canvasB = divs[b].querySelector('canvas');
+    // swap canvas contents
+    const fullImg = generateImage();
+    const cellPx = BOARD_PX / gridSize;
+    drawPieceCanvas(canvasA, fullImg, pieces[a], cellPx);
+    drawPieceCanvas(canvasB, fullImg, pieces[b], cellPx);
+  }
+
+  function updateCorrectHighlights(){
+    const divs = grid.children;
+    for(let i=0;i<pieces.length;i++){
+      divs[i].classList.toggle('correct', pieces[i]===i);
+    }
+  }
+
+  /* ── WIN ── */
+  function onWin(){
+    solved = true;
+    clearInterval(timerInterval);
+    updateTimer();
+    const elapsed = Math.floor((Date.now()-timerStart)/1000);
+    const mins = Math.floor(elapsed/60), secs = elapsed%60;
+    const msgs = ['Amazing! 🌟','Great job! 👏','You did it! 🎉','Wonderful! ⭐','Superstar! 💫'];
+    winMsg.textContent = msgs[Math.floor(Math.random()*msgs.length)];
+    winStats.textContent = `${moves} moves · ${mins}:${secs.toString().padStart(2,'0')}`;
+    winOvl.classList.remove('hidden');
+    playWin();
+    launchConfetti();
+  }
+
+  /* ── TIMER ── */
+  function updateTimer(){
+    const s = Math.floor((Date.now()-timerStart)/1000);
+    timerEl.textContent = Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+  }
+
+  /* ── PREVIEW TOGGLE ── */
+  btnPrev.addEventListener('click', ()=>{
+    previewShown = !previewShown;
+    prevWrap.style.display = previewShown ? 'flex' : 'none';
+    btnPrev.classList.toggle('active', previewShown);
+  });
+
+  /* ── CONTROLS ── */
+  btnNew.addEventListener('click', startGame);
+  btnAgain.addEventListener('click', startGame);
+  diffSel.addEventListener('change', ()=>{ gridSize = parseInt(diffSel.value); startGame(); });
+  sceneSel.addEventListener('change', ()=>{ scene = sceneSel.value; startGame(); });
+
+  /* ── CONFETTI ── */
+  function launchConfetti(){
+    const cvs = document.createElement('canvas');
+    cvs.className='confetti-canvas';
+    document.body.appendChild(cvs);
+    cvs.width = window.innerWidth; cvs.height = window.innerHeight;
+    const ctx = cvs.getContext('2d');
+    const colors=['#00e5ff','#f44336','#4caf50','#FFD700','#ff69b4','#9c27b0','#ff9800'];
+    const particles=[];
+    for(let i=0;i<100;i++){
+      particles.push({
+        x: Math.random()*cvs.width,
+        y: -20-Math.random()*cvs.height*0.5,
+        w: 4+Math.random()*6,
+        h: 8+Math.random()*10,
+        c: colors[Math.floor(Math.random()*colors.length)],
+        vx: (Math.random()-0.5)*4,
+        vy: 2+Math.random()*4,
+        rot: Math.random()*Math.PI*2,
+        vr: (Math.random()-0.5)*0.15
+      });
+    }
+    let frame=0;
+    function animate(){
+      if(frame>180){ cvs.remove(); return; }
+      ctx.clearRect(0,0,cvs.width,cvs.height);
+      for(const p of particles){
+        p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; p.vy+=0.08;
+        ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+        ctx.fillStyle=p.c; ctx.globalAlpha=Math.max(0,1-frame/180);
+        ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+        ctx.restore();
+      }
+      frame++;
+      requestAnimationFrame(animate);
+    }
+    animate();
+  }
+
+  /* ── RESIZE HANDLING ── */
+  let resizeTimer;
+  window.addEventListener('resize', ()=>{
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(()=>{ if(!solved) startGame(); }, 300);
+  });
+
+  /* ── START ── */
+  startGame();
+})();
+</script>
+</body>
+</html>
