@@ -13,6 +13,7 @@
     #difficulty{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
     #difficulty button{background:#1a1a2e;border:2px solid #333;color:#ccc;padding:6px 16px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.8rem;transition:border-color .2s}
     #difficulty button:hover,#difficulty button.active{border-color:#00e5ff;color:#fff}
+    .reset-btn{background:#1a1a2e;border:2px solid #333;color:#ccc;padding:6px 16px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.8rem;transition:border-color .2s,color .2s}.reset-btn:hover{border-color:#00e5ff;color:#fff}
     #info{display:flex;gap:20px;font-size:.95rem}#info span{color:#888}#info strong{color:#fff}
     #board{display:inline-grid;gap:2px;user-select:none}
     .cell{width:30px;height:30px;display:flex;justify-content:center;align-items:center;font-size:.8rem;font-weight:700;border-radius:3px;cursor:pointer;transition:background .1s}
@@ -57,6 +58,7 @@
       <button data-d="easy" class="active">Easy 9×9 (10)</button>
       <button data-d="medium">Medium 16×16 (40)</button>
       <button data-d="hard">Hard 16×30 (99)</button>
+      <button id="reset-btn" class="reset-btn">🔄 New Game</button>
     </div>
     <div id="info">
       <span>Mines: <strong id="mines-left">10</strong></span>
@@ -125,9 +127,11 @@
     else{statusEl.textContent="💥 Game Over!";statusEl.style.color="#f44336";mineSet.forEach(idx=>{const r=Math.floor(idx/cols),c=idx%cols;if(!revealed.has(idx)){const cell=getCell(r,c);cell.classList.remove("hidden");cell.classList.add("mine","revealed");cell.textContent="💣"}})}
   }
 
-  document.querySelectorAll("#difficulty button").forEach(btn=>{
-    btn.addEventListener("click",()=>{document.querySelectorAll("#difficulty button").forEach(b=>b.classList.remove("active"));btn.classList.add("active");init(btn.dataset.d)});
+  let currentPreset="easy";
+  document.querySelectorAll("#difficulty button[data-d]").forEach(btn=>{
+    btn.addEventListener("click",()=>{document.querySelectorAll("#difficulty button[data-d]").forEach(b=>b.classList.remove("active"));btn.classList.add("active");currentPreset=btn.dataset.d;init(currentPreset)});
   });
+  document.getElementById("reset-btn").addEventListener("click",()=>init(currentPreset));
 
   init("easy");
 })();

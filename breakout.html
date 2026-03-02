@@ -19,6 +19,7 @@
     @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
     #controls{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:.72rem;color:#666}
     #controls span{background:#1a1a2e;padding:4px 10px;border-radius:4px;border:1px solid #333}
+    .reset-btn{background:#1a1a2e;border:2px solid #333;color:#ccc;padding:8px 20px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.85rem;transition:border-color .2s,color .2s}.reset-btn:hover{border-color:#00e5ff;color:#fff}
     details.rules{background:#1a1a2e;border:1px solid #333;border-radius:8px;padding:0;margin:8px auto;max-width:420px;width:100%;font-size:.78rem;color:#aaa}
     details.rules summary{cursor:pointer;padding:8px 14px;color:#888;font-size:.8rem;letter-spacing:.08rem;list-style:none;user-select:none}
     details.rules summary::-webkit-details-marker{display:none}
@@ -58,6 +59,7 @@
         <p id="om">Click or press ENTER to Start</p>
       </div>
     </div>
+    <button id="reset-btn" class="reset-btn">🔄 Restart</button>
     <div id="controls">
       <span>← → / Mouse Move paddle</span>
       <span>ENTER / Click Start/Restart</span>
@@ -83,6 +85,7 @@
     return b;
   }
 
+  document.getElementById("reset-btn").addEventListener("click",()=>init());
   function init(){
     paddleX=(W-PADDLE_W)/2;ballX=W/2;ballY=H-30;
     dx=3*(Math.random()>.5?1:-1);dy=-3;

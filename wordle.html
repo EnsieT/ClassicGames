@@ -68,7 +68,7 @@
     <div id="board"></div>
     <p id="status"></p>
     <div id="keyboard"></div>
-    <button class="action" id="new-btn" style="display:none">New Word</button>
+    <button class="action" id="new-btn">🔄 New Word</button>
   </div>
 <script src="words.js"></script>
 <script>
@@ -90,7 +90,7 @@
   function init(){
     targetWord=WORDLE_ANSWERS[Math.floor(Math.random()*WORDLE_ANSWERS.length)];
     guesses=[];currentGuess="";gameOver=false;letterStates={};
-    statusEl.textContent="";newBtn.style.display="none";
+    statusEl.textContent="";
     renderBoard();renderKeyboard();showStats();
   }
 
@@ -169,10 +169,10 @@
 
     if(result.every(r=>r.state==="correct")){
       gameOver=true;statusEl.textContent="🎉 Brilliant!";statusEl.style.color="#4caf50";
-      const s=loadStats();s.played++;s.won++;s.streak++;saveStats(s);showStats();newBtn.style.display="";
+      const s=loadStats();s.played++;s.won++;s.streak++;saveStats(s);showStats();
     }else if(guesses.length>=MAX_GUESSES){
       gameOver=true;statusEl.textContent=`The word was: ${targetWord.toUpperCase()}`;statusEl.style.color="#f44336";
-      const s=loadStats();s.played++;s.streak=0;saveStats(s);showStats();newBtn.style.display="";
+      const s=loadStats();s.played++;s.streak=0;saveStats(s);showStats();
     }
   }
 

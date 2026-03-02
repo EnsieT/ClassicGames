@@ -593,6 +593,9 @@
     });
   })();
 
+  /* ── Reset button ───────────────────────────────────── */
+  document.getElementById("reset-btn").addEventListener("click",()=>startGame());
+
   /* ── Init ──────────────────────────────────────────── */
   renderHighScores();
   drawBoard();   // draw empty board behind overlay
