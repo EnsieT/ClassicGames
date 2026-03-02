@@ -186,7 +186,7 @@
   canvas.addEventListener("touchstart",e=>e.preventDefault(),{passive:false});
   canvas.addEventListener("touchmove",e=>e.preventDefault(),{passive:false});
 
-  renderHS();highEl.textContent=bestHS().toLocaleString();draw=function(){ctx.clearRect(0,0,canvas.width,canvas.height)};draw();
+  renderHS();highEl.textContent=bestHS().toLocaleString();ctx.clearRect(0,0,canvas.width,canvas.height);
 })();
 </script>
 </body>
