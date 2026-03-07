@@ -31,6 +31,27 @@
     details.rules .rules-body{padding:4px 14px 12px}details.rules .rules-body h4{color:#00e5ff;font-size:.75rem;margin:8px 0 4px;letter-spacing:.06rem}
     details.rules .rules-body ul{padding-left:16px;margin:0}details.rules .rules-body li{margin:2px 0;line-height:1.5}
     details.rules .rules-body kbd{background:#252542;border:1px solid #444;border-radius:3px;padding:1px 5px;font-size:.72rem;color:#ccc}
+    #mobile-controls{display:none;width:100%;gap:10px;justify-content:space-between;align-items:center;padding:0 4px}
+    .mobile-paddle-col{display:flex;flex-direction:column;gap:6px;align-items:center}
+    .mobile-paddle-col .label{font-size:.65rem;color:#888;letter-spacing:.08rem}
+    .pad-btn{width:60px;height:60px;border:2px solid #00e5ff;border-radius:12px;background:#1a1a2e;color:#00e5ff;font-size:1.5rem;font-weight:700;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;transition:background .1s,transform .1s}
+    .pad-btn:active{background:#00e5ff33;transform:scale(.93)}
+    .pad-btn.p2-color{border-color:#f06292;color:#f06292}
+    .pad-btn.p2-color:active{background:#f0629233}
+    #ai-toggle{display:none;gap:8px;align-items:center;font-size:.78rem;color:#888}
+    #ai-toggle label{display:flex;align-items:center;gap:6px;cursor:pointer}
+    #ai-toggle input{accent-color:#00e5ff;width:16px;height:16px}
+    @media(max-width:600px){
+      html,body{overscroll-behavior:none}
+      body{align-items:flex-start;overflow:hidden}
+      #app{height:100vh;height:100dvh;padding:8px 8px 12px;gap:6px;justify-content:flex-start;width:100%}
+      h1{font-size:1.3rem;letter-spacing:.3rem}
+      details.rules{display:none}
+      #controls{display:none}
+      canvas{width:min(95vw,400px);height:auto;touch-action:none}
+      #mobile-controls{display:flex}
+      #ai-toggle{display:flex}
+    }
   </style>
 </head>
 <body>
@@ -67,6 +88,21 @@
       </div>
     </div>
     <button id="reset-btn" class="reset-btn">🔄 Restart</button>
+    <div id="ai-toggle">
+      <label><input type="checkbox" id="ai-check" checked/> AI controls Player 2</label>
+    </div>
+    <div id="mobile-controls">
+      <div class="mobile-paddle-col">
+        <div class="label">P1</div>
+        <button class="pad-btn" data-pad="p1" data-dir="up" aria-label="P1 Up">▲</button>
+        <button class="pad-btn" data-pad="p1" data-dir="down" aria-label="P1 Down">▼</button>
+      </div>
+      <div class="mobile-paddle-col">
+        <div class="label">P2</div>
+        <button class="pad-btn p2-color" data-pad="p2" data-dir="up" aria-label="P2 Up">▲</button>
+        <button class="pad-btn p2-color" data-pad="p2" data-dir="down" aria-label="P2 Down">▼</button>
+      </div>
+    </div>
     <div id="controls">
       <span>W / S Player 1</span>
       <span>↑ / ↓ Player 2</span>
@@ -167,7 +203,54 @@
   
   // Click overlay to start/restart (mobile support)
   overlay.addEventListener("click",()=>{if(!paused)init()});
-  
+
+  // --- AI for Player 2 ---
+  const aiCheck=document.getElementById("ai-check");
+  let useAI=aiCheck.checked;
+  aiCheck.addEventListener("change",()=>{useAI=aiCheck.checked});
+
+  // Patch loop to add AI
+  const _origLoop=loop;
+  loop=function aiLoop(){
+    if(useAI&&running&&!paused){
+      const center=p2y+PAD_H/2;
+      if(by<center-10&&p2y>0)p2y-=PAD_SPEED;
+      else if(by>center+10&&p2y<H-PAD_H)p2y+=PAD_SPEED;
+    }
+    _origLoop();
+  };
+
+  // --- Mobile D-pad buttons ---
+  let mobileKeys={p1up:false,p1down:false,p2up:false,p2down:false};
+  document.querySelectorAll(".pad-btn").forEach(btn=>{
+    function press(){const p=btn.dataset.pad,d=btn.dataset.dir;mobileKeys[p+d]=true;}
+    function release(){const p=btn.dataset.pad,d=btn.dataset.dir;mobileKeys[p+d]=false;}
+    btn.addEventListener("touchstart",e=>{e.preventDefault();press();if(!running||paused)init();});
+    btn.addEventListener("touchend",e=>{e.preventDefault();release();});
+    btn.addEventListener("touchcancel",e=>{release();});
+    btn.addEventListener("mousedown",e=>{press();if(!running||paused)init();});
+    btn.addEventListener("mouseup",e=>{release();});
+    btn.addEventListener("mouseleave",e=>{release();});
+  });
+
+  // Patch main loop to read mobile keys
+  const _aiLoop=loop;
+  loop=function mobileLoop(){
+    if(mobileKeys.p1up&&p1y>0)keys["w"]=true;
+    if(mobileKeys.p1down&&p1y<H-PAD_H)keys["s"]=true;
+    if(mobileKeys.p2up&&p2y>0)keys["arrowup"]=true;
+    if(mobileKeys.p2down&&p2y<H-PAD_H)keys["arrowdown"]=true;
+    _aiLoop();
+    if(mobileKeys.p1up)keys["w"]=false;
+    if(mobileKeys.p1down)keys["s"]=false;
+    if(mobileKeys.p2up)keys["arrowup"]=false;
+    if(mobileKeys.p2down)keys["arrowdown"]=false;
+  };
+
+  // Prevent canvas touch scroll
+  canvas.addEventListener("touchstart",e=>e.preventDefault(),{passive:false});
+  canvas.addEventListener("touchmove",e=>e.preventDefault(),{passive:false});
+
   draw();
 })();
 </script>
