@@ -85,7 +85,7 @@
           <button id="shuffle-btn" class="action">🔀 Shuffle</button>
           <button id="new-btn" class="action">🐝 New Hive</button>
         </div>
-        <p id="status"></p>
+        <p id="status">Loading dictionary…</p>
         <p class="hint">4-letter words score 1 point. Longer words score their length. Pangrams earn a 7-point bonus.</p>
       </section>
 
@@ -99,7 +99,6 @@
     </div>
   </div>
 
-<script src="words.js"></script>
 <script>
 (()=>{
   const hiveEl=document.getElementById('hive');
@@ -138,11 +137,9 @@
     return n;
   }
 
-  const rawWords=Array.from(new Set([...WORDLE_ANSWERS,...WORDLE_VALID]));
-  const wordBank=rawWords
-    .filter(word=>/^[a-z]{4,9}$/.test(word))
-    .map(word=>({word,length:word.length,mask:maskOf(word)}));
-  const seedBank=wordBank.filter(item=>popcount(item.mask)===7&&item.length>=7);
+  let wordBank=[];
+  let seedBank=[];
+  let dictionaryLoaded=false;
 
   let center='';
   let letters=[];
@@ -152,6 +149,10 @@
   let pangrams=[];
   let totalScore=0;
   let score=0;
+
+  function setControlsDisabled(disabled){
+    [submitBtn,deleteBtn,shuffleBtn,newBtn].forEach(btn=>btn.disabled=disabled);
+  }
 
   function shuffle(arr){
     const copy=arr.slice();
@@ -199,6 +200,7 @@
   function renderHive(){
     hiveEl.innerHTML='';
     const outer=letters.filter(ch=>ch!==center);
+    if(outer.length!==6||!center) return;
     const order=[outer[0],outer[1],outer[2],outer[3],outer[4],outer[5],center];
     order.forEach((ch,index)=>{
       const btn=document.createElement('button');
@@ -274,17 +276,16 @@
   }
 
   function buildPuzzle(){
-    for(let attempt=0;attempt<220;attempt++){
-      const seed=seedBank[Math.floor(Math.random()*seedBank.length)].word;
-      const seedLetters=[...new Set(seed)];
-      const hiveMask=maskOf(seedLetters.join(''));
+    const trialSeeds=shuffle(seedBank).slice(0,60);
+    for(const seedItem of trialSeeds){
+      const seedLetters=seedItem.letters;
+      const hiveMask=seedItem.mask;
+      const eligible=wordBank.filter(item=>item.length>=4&&(item.mask&~hiveMask)===0);
       const centerOrder=shuffle(seedLetters);
       for(const candidateCenter of centerOrder){
-        const candidates=wordBank.filter(item=>
-          item.length>=4&&
-          item.word.includes(candidateCenter)&&
-          (item.mask&~hiveMask)===0
-        ).map(item=>item.word);
+        const candidates=eligible
+          .filter(item=>item.word.includes(candidateCenter))
+          .map(item=>item.word);
         const pangramList=candidates.filter(word=>maskOf(word)===hiveMask);
         const scoreTotal=candidates.reduce((sum,word)=>sum+scoreWord(word),0);
         if(candidates.length>=14&&pangramList.length>=1&&scoreTotal>=45){
@@ -300,7 +301,34 @@
     return false;
   }
 
+  async function loadDictionary(){
+    if(dictionaryLoaded) return;
+    const response=await fetch('words.txt');
+    if(!response.ok) throw new Error('Dictionary request failed');
+    const text=await response.text();
+    const words=[...new Set(
+      text
+        .split(/\r?\n/)
+        .map(word=>word.trim().toLowerCase())
+        .filter(word=>/^[a-z]{4,10}$/.test(word))
+    )];
+
+    wordBank=words
+      .map(word=>{
+        const uniqueLetters=[...new Set(word)];
+        return {word,length:word.length,mask:maskOf(word),letters:uniqueLetters};
+      })
+      .filter(item=>item.letters.length<=7);
+
+    seedBank=wordBank.filter(item=>item.letters.length===7&&item.length>=7);
+    dictionaryLoaded=true;
+  }
+
   function newPuzzle(){
+    if(!dictionaryLoaded){
+      setStatus('Dictionary still loading…','#f0a000');
+      return;
+    }
     foundWords=new Set();
     currentWord='';
     score=0;
@@ -328,7 +356,18 @@
   shuffleBtn.addEventListener('click',shuffleOuter);
   newBtn.addEventListener('click',newPuzzle);
 
-  newPuzzle();
+  (async()=>{
+    try{
+      setControlsDisabled(true);
+      setStatus('Loading dictionary…','#888');
+      await loadDictionary();
+      if(!seedBank.length) throw new Error('No valid hives found');
+      setControlsDisabled(false);
+      newPuzzle();
+    }catch{
+      setStatus('Could not load words.txt. Open through GitHub Pages or a local server.','#f44336');
+    }
+  })();
 })();
 </script>
 </body>
