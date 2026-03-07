@@ -18,6 +18,7 @@ No dependencies. No build step. Just open `index.html` or deploy to GitHub Pages
 | **Wordle** | Guess the 5-letter word in 6 tries. Stats tracked |
 | **Spell Bee** | Make words from a 7-letter hive with one required center letter |
 | **Word Search** | Find hidden words in a letter grid built from the Wordle list |
+| **Letter Boxed** | Chain words around a 4-sided letter box and use all 12 letters |
 | **Simon Says** | Memorise & repeat color/sound sequences. High scores |
 | **Jigsaw** | Swap picture tiles into place. Multiple scenes and difficulties |
 
@@ -35,6 +36,7 @@ No dependencies. No build step. Just open `index.html` or deploy to GitHub Pages
 - **Persistent scores** — high scores & stats saved in `localStorage`
 - **Responsive design** — works on desktop & mobile
 - **Neon dark theme** — consistent look across all games
+- **Browsable launcher** — search, category filters, sort options, and grid/list views on the home page
 
 ## Deploy to GitHub Pages
 

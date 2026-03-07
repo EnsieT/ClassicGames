@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Letter Boxed — Classic Games</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0f0f1a;color:#e0e0e0;font-family:'Segoe UI','Consolas',monospace;display:flex;justify-content:center;align-items:center;min-height:100vh}
+    #app{display:flex;flex-direction:column;align-items:center;gap:14px;padding:20px;max-width:920px;width:100%}
+    .back-link{align-self:flex-start;color:#00e5ff;text-decoration:none;font-size:.85rem}.back-link:hover{color:#fff}
+    h1{font-size:2rem;letter-spacing:.42rem;color:#00e5ff;text-shadow:0 0 12px #00e5ff88}
+    .stats{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;font-size:.9rem}.stats span{color:#888}.stats strong{color:#fff}
+    #layout{display:grid;grid-template-columns:minmax(320px,430px) minmax(260px,1fr);gap:18px;width:100%;align-items:start}
+    .panel{background:#1a1a2e;border:1px solid #333;border-radius:12px;padding:16px}
+    #play-panel{display:flex;flex-direction:column;align-items:center;gap:14px}
+    #box-wrap{position:relative;width:320px;height:320px}
+    #box{position:absolute;inset:52px;border:3px solid #00e5ff;border-radius:16px;box-shadow:0 0 22px #00e5ff22 inset,0 0 18px #00e5ff22}
+    .side{position:absolute;display:flex;gap:12px;justify-content:center;align-items:center}
+    .side.top{top:0;left:50%;transform:translateX(-50%);width:220px;height:52px}
+    .side.right{top:50%;right:0;transform:translateY(-50%);width:52px;height:220px;flex-direction:column}
+    .side.bottom{bottom:0;left:50%;transform:translateX(-50%);width:220px;height:52px}
+    .side.left{top:50%;left:0;transform:translateY(-50%);width:52px;height:220px;flex-direction:column}
+    .letter{width:46px;height:46px;border-radius:12px;border:2px solid #333;background:#111;display:flex;justify-content:center;align-items:center;font-size:1.45rem;font-weight:700;color:#fff;text-transform:uppercase;transition:border-color .2s,background .2s,color .2s,transform .12s}
+    .letter.used{border-color:#4caf50;background:#17331d;color:#b8f2be}
+    .letter.current{border-color:#00e5ff;background:#10283d;color:#fff;transform:scale(1.05)}
+    #current-word{width:100%;min-height:56px;border:2px solid #333;border-radius:10px;background:#111;display:flex;justify-content:center;align-items:center;color:#fff;font-size:1.5rem;letter-spacing:.2rem;text-transform:uppercase;padding:0 12px;text-align:center;word-break:break-all}
+    #current-word.chain-warning{border-color:#f0a000;color:#ffd27a}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+    button.action{background:#1a1a2e;border:2px solid #333;color:#ccc;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:.82rem;transition:border-color .2s,color .2s,transform .12s}
+    button.action:hover{border-color:#00e5ff;color:#fff}
+    button.action:active{transform:scale(.97)}
+    button.action:disabled{opacity:.5;cursor:not-allowed}
+    #status{min-height:1.4em;text-align:center;font-size:.92rem;color:#888}
+    #words-panel{display:flex;flex-direction:column;gap:12px}
+    #submitted-words{list-style:none;display:flex;flex-direction:column;gap:8px;max-height:300px;overflow:auto;padding-right:4px}
+    #submitted-words li{padding:10px 12px;border-radius:8px;background:#111;border:1px solid #2c2c42;color:#ddd;font-size:.86rem;text-transform:uppercase;letter-spacing:.08rem;display:flex;justify-content:space-between;gap:12px}
+    #submitted-words li small{color:#777;font-size:.72rem}
+    #valid-preview{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;list-style:none}
+    #valid-preview li{padding:7px 8px;border-radius:8px;background:#111;border:1px solid #2c2c42;color:#8f8f9f;font-size:.74rem;text-transform:uppercase;letter-spacing:.06rem;text-align:center}
+    .hint{font-size:.78rem;color:#888;line-height:1.5}
+    details.rules{background:#1a1a2e;border:1px solid #333;border-radius:8px;padding:0;margin:0 auto;max-width:760px;width:100%;font-size:.78rem;color:#aaa}
+    details.rules summary{cursor:pointer;padding:8px 14px;color:#888;font-size:.8rem;letter-spacing:.08rem;list-style:none;user-select:none}
+    details.rules summary::-webkit-details-marker{display:none}
+    details.rules summary::before{content:"▸ ";color:#00e5ff}details.rules[open] summary::before{content:"▾ "}
+    details.rules .rules-body{padding:4px 14px 12px}details.rules .rules-body h4{color:#00e5ff;font-size:.75rem;margin:8px 0 4px;letter-spacing:.06rem}
+    details.rules .rules-body ul{padding-left:16px;margin:0}details.rules .rules-body li{margin:2px 0;line-height:1.5}
+    details.rules .rules-body kbd{background:#252542;border:1px solid #444;border-radius:3px;padding:1px 5px;font-size:.72rem;color:#ccc}
+    @media(max-width:760px){
+      #layout{grid-template-columns:1fr}
+      #box-wrap{width:280px;height:280px}
+      #box{inset:46px}
+      .side.top,.side.bottom{width:194px;height:46px}
+      .side.left,.side.right{width:46px;height:194px}
+      .letter{width:40px;height:40px;font-size:1.2rem;border-radius:10px}
+      h1{font-size:1.65rem;letter-spacing:.28rem}
+      #app{padding:14px}
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <a href="index.html" class="back-link">← Back to Games</a>
+    <h1>LETTER BOXED</h1>
+    <details class="rules"><summary>Rules &amp; Controls</summary><div class="rules-body">
+      <h4>RULES</h4>
+      <ul>
+        <li>Build words using the 12 letters around the box</li>
+        <li>Consecutive letters cannot come from the same side</li>
+        <li>Each new word must start with the last letter of the previous word</li>
+        <li>Use all 12 letters in as few words as possible</li>
+      </ul>
+      <h4>CONTROLS</h4>
+      <ul>
+        <li>Click letters or type on your keyboard</li>
+        <li><kbd>Enter</kbd> submit, <kbd>Backspace</kbd> delete</li>
+        <li>Uses the downloaded dictionary from <strong>words.txt</strong></li>
+      </ul>
+    </div></details>
+
+    <div class="stats">
+      <span>Used: <strong id="used-count">0</strong>/12</span>
+      <span>Words: <strong id="word-count">0</strong></span>
+      <span>Par: <strong id="par-count">0</strong></span>
+      <span>Valid words: <strong id="valid-count">0</strong></span>
+    </div>
+
+    <div id="layout">
+      <section id="play-panel" class="panel">
+        <div id="current-word">Loading…</div>
+        <div id="box-wrap">
+          <div id="box"></div>
+          <div class="side top" data-side="0"></div>
+          <div class="side right" data-side="1"></div>
+          <div class="side bottom" data-side="2"></div>
+          <div class="side left" data-side="3"></div>
+        </div>
+        <div class="actions">
+          <button id="submit-btn" class="action">✅ Submit</button>
+          <button id="delete-btn" class="action">⌫ Delete</button>
+          <button id="undo-btn" class="action">↩ Undo</button>
+          <button id="hint-btn" class="action">💡 Hint</button>
+          <button id="new-btn" class="action">🔄 New Puzzle</button>
+        </div>
+        <p id="status">Loading dictionary…</p>
+        <p class="hint">Tip: shorter solutions are better. Aim to match or beat the puzzle par.</p>
+      </section>
+
+      <section id="words-panel" class="panel">
+        <ul id="submitted-words"></ul>
+        <div>
+          <p class="hint" style="margin-bottom:8px;">Sample playable words from this box:</p>
+          <ul id="valid-preview"></ul>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+  (()=>{
+    const sidesEls=[...document.querySelectorAll('.side')];
+    const currentWordEl=document.getElementById('current-word');
+    const statusEl=document.getElementById('status');
+    const usedCountEl=document.getElementById('used-count');
+    const wordCountEl=document.getElementById('word-count');
+    const parCountEl=document.getElementById('par-count');
+    const validCountEl=document.getElementById('valid-count');
+    const submittedWordsEl=document.getElementById('submitted-words');
+    const validPreviewEl=document.getElementById('valid-preview');
+    const submitBtn=document.getElementById('submit-btn');
+    const deleteBtn=document.getElementById('delete-btn');
+    const undoBtn=document.getElementById('undo-btn');
+    const hintBtn=document.getElementById('hint-btn');
+    const newBtn=document.getElementById('new-btn');
+
+    let dictionary=[];
+    let firstIndex=new Map();
+    let dictionaryLoaded=false;
+
+    let puzzleLetters=[];
+    let sideMap={};
+    let validWords=[];
+    let validSet=new Set();
+    let previewWords=[];
+    let solutionChain=[];
+    let currentWord='';
+    let submittedWords=[];
+    let usedLetters=new Set();
+
+    function setStatus(msg,color='#888'){ statusEl.textContent=msg; statusEl.style.color=color; }
+    function setControlsDisabled(disabled){ [submitBtn,deleteBtn,undoBtn,hintBtn,newBtn].forEach(btn=>btn.disabled=disabled); }
+    function uniqueLetters(word){ return [...new Set(word)]; }
+    function hasDoubleStep(word){ for(let i=1;i<word.length;i++) if(word[i]===word[i-1]) return true; return false; }
+    function wordMask(word){ let mask=0; for(const ch of uniqueLetters(word)) mask|=1<<(ch.charCodeAt(0)-97); return mask; }
+
+    function buildIndices(){
+      firstIndex=new Map();
+      dictionary.forEach(item=>{
+        const first=item.word[0];
+        if(!firstIndex.has(first)) firstIndex.set(first,[]);
+        firstIndex.get(first).push(item);
+      });
+    }
+
+    async function loadDictionary(){
+      if(dictionaryLoaded) return;
+      const response=await fetch('words.txt');
+      if(!response.ok) throw new Error('Failed to load dictionary');
+      const text=await response.text();
+      const words=[...new Set(text.split(/\r?\n/).map(w=>w.trim().toLowerCase()).filter(w=>/^[a-z]{3,10}$/.test(w)))];
+      dictionary=words
+        .filter(word=>!hasDoubleStep(word))
+        .map(word=>({word,letters:uniqueLetters(word),mask:wordMask(word)}))
+        .filter(item=>item.letters.length>=3&&item.letters.length<=8);
+      buildIndices();
+      dictionaryLoaded=true;
+    }
+
+    function shuffle(arr){
+      const copy=arr.slice();
+      for(let i=copy.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [copy[i],copy[j]]=[copy[j],copy[i]];
+      }
+      return copy;
+    }
+
+    function unionLetters(words){ return [...new Set(words.flatMap(word=>word.split('')))]; }
+
+    function buildEdgeMap(words){
+      const graph=new Map();
+      function addNode(ch){ if(!graph.has(ch)) graph.set(ch,new Set()); }
+      words.forEach(word=>{
+        for(const ch of word) addNode(ch);
+        for(let i=1;i<word.length;i++){
+          const a=word[i-1],b=word[i];
+          if(a===b) return null;
+          graph.get(a).add(b);
+          graph.get(b).add(a);
+        }
+      });
+      return graph;
+    }
+
+    function assignSides(letters,words){
+      const graph=buildEdgeMap(words);
+      if(!graph) return null;
+      letters.forEach(ch=>{ if(!graph.has(ch)) graph.set(ch,new Set()); });
+      const ordered=letters.slice().sort((a,b)=>graph.get(b).size-graph.get(a).size);
+      const sideMapLocal={};
+      const counts=[0,0,0,0];
+
+      function dfs(index){
+        if(index===ordered.length) return counts.every(count=>count===3);
+        const ch=ordered[index];
+        for(let side=0;side<4;side++){
+          if(counts[side]>=3) continue;
+          let ok=true;
+          for(const neighbor of graph.get(ch)){
+            if(sideMapLocal[neighbor]===side){ ok=false; break; }
+          }
+          if(!ok) continue;
+          sideMapLocal[ch]=side;
+          counts[side]++;
+          const remaining=ordered.length-index-1;
+          const stillPossible=counts.every(count=>count<=3)&&counts.reduce((sum,count)=>sum+(3-count),0)===remaining;
+          if(stillPossible&&dfs(index+1)) return sideMapLocal;
+          counts[side]--;
+          delete sideMapLocal[ch];
+        }
+        return null;
+      }
+
+      return dfs(0);
+    }
+
+    function fitsSides(word,map){
+      for(let i=1;i<word.length;i++) if(map[word[i]]===map[word[i-1]]) return false;
+      return true;
+    }
+
+    function generatePuzzle(){
+      const candidates=shuffle(dictionary.filter(item=>item.letters.length>=4&&item.letters.length<=7)).slice(0,500);
+      for(const first of candidates){
+        const nextPool=shuffle((firstIndex.get(first.word[first.word.length-1])||[])).slice(0,80);
+        for(const second of nextPool){
+          if(second.word===first.word) continue;
+          let letters=unionLetters([first.word,second.word]);
+          if(letters.length>12) continue;
+          const chains=[];
+          if(letters.length===12) chains.push([first.word,second.word]);
+          const thirdPool=shuffle((firstIndex.get(second.word[second.word.length-1])||[])).slice(0,60);
+          for(const third of thirdPool){
+            if(third.word===first.word||third.word===second.word) continue;
+            const thirdUnion=unionLetters([first.word,second.word,third.word]);
+            if(thirdUnion.length===12) chains.push([first.word,second.word,third.word]);
+          }
+
+          for(const chain of chains){
+            letters=unionLetters(chain);
+            const sideAttempt=assignSides(letters,chain);
+            if(!sideAttempt) continue;
+            const letterSet=new Set(letters);
+            const playable=dictionary
+              .filter(item=>item.word.length>=3&&item.letters.every(ch=>letterSet.has(ch))&&fitsSides(item.word,sideAttempt))
+              .map(item=>item.word);
+            if(playable.length<18) continue;
+            puzzleLetters=letters;
+            sideMap=sideAttempt;
+            validWords=playable.sort();
+            validSet=new Set(validWords);
+            previewWords=shuffle(validWords.filter(word=>word.length>=4)).slice(0,12).sort((a,b)=>a.localeCompare(b));
+            solutionChain=chain;
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    function renderBox(){
+      sidesEls.forEach(sideEl=>sideEl.innerHTML='');
+      for(let side=0;side<4;side++){
+        const letters=puzzleLetters.filter(ch=>sideMap[ch]===side).sort();
+        letters.forEach(ch=>{
+          const btn=document.createElement('button');
+          btn.type='button';
+          btn.className='letter';
+          btn.textContent=ch;
+          btn.dataset.letter=ch;
+          btn.dataset.side=side;
+          btn.addEventListener('click',()=>tryAddLetter(ch));
+          sidesEls[side].appendChild(btn);
+        });
+      }
+      renderLetterStates();
+    }
+
+    function renderLetterStates(){
+      document.querySelectorAll('.letter').forEach(el=>{
+        const letter=el.dataset.letter;
+        el.classList.toggle('used',usedLetters.has(letter));
+        el.classList.toggle('current',currentWord.includes(letter));
+      });
+    }
+
+    function renderCurrentWord(){
+      currentWordEl.textContent=currentWord||'TYPE OR TAP LETTERS';
+      const needChain=submittedWords.length&&currentWord&&currentWord[0]!==submittedWords[submittedWords.length-1].slice(-1);
+      currentWordEl.classList.toggle('chain-warning',needChain);
+    }
+
+    function renderSubmittedWords(){
+      submittedWordsEl.innerHTML='';
+      if(!submittedWords.length){
+        const li=document.createElement('li');
+        li.innerHTML='<span>No words submitted yet</span><small>Goal: use all 12 letters</small>';
+        li.style.textTransform='none';
+        li.style.letterSpacing='normal';
+        li.style.color='#666';
+        submittedWordsEl.appendChild(li);
+      }else{
+        submittedWords.forEach((word,index)=>{
+          const li=document.createElement('li');
+          li.innerHTML=`<span>${word}</span><small>word ${index+1}</small>`;
+          submittedWordsEl.appendChild(li);
+        });
+      }
+    }
+
+    function renderPreviewWords(){
+      validPreviewEl.innerHTML='';
+      previewWords.forEach(word=>{
+        const li=document.createElement('li');
+        li.textContent=word;
+        validPreviewEl.appendChild(li);
+      });
+    }
+
+    function updateStats(){
+      usedCountEl.textContent=usedLetters.size;
+      wordCountEl.textContent=submittedWords.length;
+      parCountEl.textContent=solutionChain.length;
+      validCountEl.textContent=validWords.length;
+    }
+
+    function recomputeUsedLetters(){
+      usedLetters=new Set(submittedWords.join('').split('').filter(Boolean));
+      renderLetterStates();
+      updateStats();
+    }
+
+    function tryAddLetter(letter){
+      if(!sideMap[letter]&&sideMap[letter]!==0) return;
+      const last=currentWord[currentWord.length-1];
+      if(last&&sideMap[last]===sideMap[letter]){
+        setStatus('Pick the next letter from a different side.','#f0a000');
+        return;
+      }
+      if(!currentWord&&submittedWords.length&&letter!==submittedWords[submittedWords.length-1].slice(-1)){
+        setStatus('Next word must start with the last letter of the previous word.','#f0a000');
+      }
+      currentWord+=letter;
+      renderCurrentWord();
+      renderLetterStates();
+    }
+
+    function deleteLetter(){
+      currentWord=currentWord.slice(0,-1);
+      renderCurrentWord();
+      renderLetterStates();
+    }
+
+    function submitWord(){
+      const word=currentWord.toLowerCase();
+      if(word.length<3){ setStatus('Words must be at least 3 letters.','#f0a000'); return; }
+      if(submittedWords.length&&word[0]!==submittedWords[submittedWords.length-1].slice(-1)){
+        setStatus('Each word must start with the last letter of the previous word.','#f44336');
+        return;
+      }
+      if(!validSet.has(word)){
+        setStatus('That word does not fit this box.','#f44336');
+        return;
+      }
+      if(submittedWords.includes(word)){
+        setStatus('You already used that word.','#f0a000');
+        return;
+      }
+      submittedWords.push(word);
+      currentWord='';
+      renderCurrentWord();
+      renderSubmittedWords();
+      recomputeUsedLetters();
+      if(usedLetters.size===12){
+        const relation=submittedWords.length<=solutionChain.length?'Matched or beat par!':'Solved!';
+        setStatus(`🎉 ${relation} You used all letters in ${submittedWords.length} word${submittedWords.length===1?'':'s'}.`,'#4caf50');
+      }else{
+        setStatus('Word accepted. Keep chaining.','#4caf50');
+      }
+    }
+
+    function undoWord(){
+      if(currentWord){ deleteLetter(); return; }
+      if(!submittedWords.length) return;
+      submittedWords.pop();
+      renderSubmittedWords();
+      recomputeUsedLetters();
+      setStatus('Last word removed.','#888');
+    }
+
+    function showHint(){
+      const next=solutionChain[submittedWords.length]||solutionChain.find(word=>!submittedWords.includes(word));
+      if(!next){ setStatus('No hint needed — you are close!','#00e5ff'); return; }
+      setStatus(`Hint: try a word starting with ${next[0].toUpperCase()} and ending with ${next.slice(-1).toUpperCase()}.`,'#00e5ff');
+    }
+
+    function resetRun(){
+      currentWord='';
+      submittedWords=[];
+      usedLetters=new Set();
+      renderCurrentWord();
+      renderSubmittedWords();
+      renderLetterStates();
+      updateStats();
+    }
+
+    function newPuzzle(){
+      if(!dictionaryLoaded){ setStatus('Dictionary still loading…','#f0a000'); return; }
+      for(let attempt=0;attempt<5;attempt++){
+        if(generatePuzzle()){
+          resetRun();
+          renderBox();
+          renderPreviewWords();
+          updateStats();
+          setStatus('Use all 12 letters in as few words as possible.','#888');
+          return;
+        }
+      }
+      setStatus('Could not build a puzzle right now. Try again.','#f44336');
+    }
+
+    document.addEventListener('keydown',e=>{
+      if(e.ctrlKey||e.altKey||e.metaKey) return;
+      if(e.key==='Enter'){ submitWord(); return; }
+      if(e.key==='Backspace'){ deleteLetter(); return; }
+      if(/^[a-z]$/i.test(e.key)) tryAddLetter(e.key.toLowerCase());
+    });
+
+    submitBtn.addEventListener('click',submitWord);
+    deleteBtn.addEventListener('click',deleteLetter);
+    undoBtn.addEventListener('click',undoWord);
+    hintBtn.addEventListener('click',showHint);
+    newBtn.addEventListener('click',newPuzzle);
+
+    (async()=>{
+      try{
+        setControlsDisabled(true);
+        await loadDictionary();
+        setControlsDisabled(false);
+        newPuzzle();
+      }catch{
+        setStatus('Could not load words.txt. Open through GitHub Pages or a local server.','#f44336');
+      }
+    })();
+  })();
+  </script>
+</body>
+</html>

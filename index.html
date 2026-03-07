@@ -10,15 +10,12 @@
       background: #0f0f1a;
       color: #e0e0e0;
       font-family: 'Segoe UI', 'Consolas', monospace;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       min-height: 100vh;
+      padding: 28px 18px 40px;
     }
     .container {
-      text-align: center;
-      max-width: 900px;
-      padding: 40px 20px;
+      width: min(1200px, 100%);
+      margin: 0 auto;
     }
     h1 {
       font-size: 2.8rem;
@@ -26,38 +23,166 @@
       color: #00e5ff;
       text-shadow: 0 0 18px #00e5ff66;
       margin-bottom: 8px;
+      text-align: center;
     }
     .subtitle {
       color: #666;
       font-size: 0.95rem;
-      margin-bottom: 48px;
+      margin-bottom: 26px;
+      text-align: center;
+    }
+    .browse-panel {
+      background: #17172a;
+      border: 1px solid #2b2b45;
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 10px 32px rgba(0,0,0,.22);
+      margin-bottom: 22px;
+    }
+    .control-grid {
+      display: grid;
+      grid-template-columns: minmax(220px, 2fr) repeat(3, minmax(140px, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      text-align: left;
+    }
+    .field label {
+      font-size: 0.74rem;
+      letter-spacing: 0.1rem;
+      color: #7b7b92;
+      text-transform: uppercase;
+    }
+    .field input,
+    .field select {
+      width: 100%;
+      background: #0f1020;
+      color: #f0f3ff;
+      border: 2px solid #2e314f;
+      border-radius: 10px;
+      padding: 11px 12px;
+      font: inherit;
+      outline: none;
+      transition: border-color .18s, box-shadow .18s;
+    }
+    .field input:focus,
+    .field select:focus {
+      border-color: #00e5ff;
+      box-shadow: 0 0 0 3px #00e5ff1f;
+    }
+    .field select option { background: #111425; color: #f0f3ff; }
+    .results-bar {
+      margin-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .results-meta {
+      color: #7e839a;
+      font-size: 0.82rem;
+    }
+    .results-meta strong { color: #fff; }
+    .view-toggle {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .toggle-btn {
+      background: #101226;
+      color: #9ca5c4;
+      border: 1px solid #313756;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font: inherit;
+      cursor: pointer;
+      transition: border-color .18s, color .18s, background .18s;
+    }
+    .toggle-btn.active,
+    .toggle-btn:hover {
+      border-color: #00e5ff;
+      color: #fff;
+      background: #00e5ff1a;
+    }
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .chip {
+      border: 1px solid #2f3556;
+      background: #101226;
+      color: #8e97b3;
+      border-radius: 999px;
+      padding: 7px 11px;
+      font: inherit;
+      font-size: .75rem;
+      cursor: pointer;
+      transition: border-color .18s, color .18s, background .18s;
+    }
+    .chip.active,
+    .chip:hover {
+      border-color: #00e5ff;
+      color: #fff;
+      background: #00e5ff1a;
     }
     .game-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 18px;
     }
+    .game-grid.list-view {
+      grid-template-columns: 1fr;
+    }
     .game-card {
       background: #1a1a2e;
       border: 2px solid #333;
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 24px 18px;
       text-decoration: none;
       color: inherit;
-      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s, opacity .2s;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 10px;
+      min-height: 100%;
     }
     .game-card:hover {
       transform: translateY(-4px);
       border-color: #00e5ff;
       box-shadow: 0 8px 30px #00e5ff22;
     }
+    .game-card.hidden { display: none; }
+    .game-grid.list-view .game-card {
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 18px;
+      text-align: left;
+      padding: 18px 20px;
+    }
+    .game-grid.list-view .game-card .game-body {
+      flex: 1;
+      align-items: flex-start;
+    }
     .game-icon {
       font-size: 3.2rem;
       line-height: 1;
+      flex: 0 0 auto;
+    }
+    .game-body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
     }
     .game-card h2 {
       font-size: 1.3rem;
@@ -67,155 +192,348 @@
     .game-card p {
       font-size: 0.82rem;
       color: #888;
-      line-height: 1.5;
+      line-height: 1.55;
+      max-width: 34ch;
     }
+    .game-grid.list-view .game-card p { max-width: none; }
+    .meta-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .game-grid.list-view .meta-row { justify-content: flex-start; }
     .badge {
       display: inline-block;
       font-size: 0.65rem;
-      padding: 2px 8px;
+      padding: 3px 9px;
       border-radius: 20px;
       background: #00e5ff22;
       color: #00e5ff;
       border: 1px solid #00e5ff44;
       letter-spacing: 0.05rem;
     }
+    .badge.alt {
+      background: #ffffff10;
+      color: #cfd6f4;
+      border-color: #ffffff1f;
+    }
+    .empty-state {
+      display: none;
+      margin-top: 18px;
+      padding: 22px;
+      text-align: center;
+      border: 1px dashed #36405b;
+      border-radius: 14px;
+      color: #8087a0;
+      background: #151727;
+    }
     footer {
-      margin-top: 60px;
+      margin-top: 38px;
       font-size: 0.75rem;
       color: #444;
+      text-align: center;
     }
     footer a { color: #00e5ff; text-decoration: none; }
+    @media (max-width: 880px) {
+      .control-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      body { padding: 18px 12px 30px; }
+      h1 { font-size: 2rem; letter-spacing: .28rem; }
+      .control-grid { grid-template-columns: 1fr; }
+      .game-grid.list-view .game-card { flex-direction: column; align-items: center; text-align: center; }
+      .game-grid.list-view .game-card .game-body { align-items: center; }
+      .game-grid.list-view .meta-row { justify-content: center; }
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>CLASSIC GAMES</h1>
-    <p class="subtitle">Pick a game and start playing — no installs needed</p>
+    <p class="subtitle">Browse by category, search by name, switch views, and jump into a favorite instantly.</p>
 
-    <div class="game-grid">
-      <a href="tetris.html" class="game-card">
+    <section class="browse-panel">
+      <div class="control-grid">
+        <div class="field">
+          <label for="search-input">Search</label>
+          <input id="search-input" type="search" placeholder="Search games, descriptions, or categories..." />
+        </div>
+        <div class="field">
+          <label for="category-select">Category</label>
+          <select id="category-select">
+            <option value="all">All Categories</option>
+            <option value="Arcade">Arcade</option>
+            <option value="Puzzle">Puzzle</option>
+            <option value="Word">Word</option>
+            <option value="Board">Board</option>
+            <option value="Memory">Memory</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="player-select">Players</label>
+          <select id="player-select">
+            <option value="all">Any Players</option>
+            <option value="1">1 Player</option>
+            <option value="2">2 Players</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="sort-select">Sort</label>
+          <select id="sort-select">
+            <option value="default">Original Order</option>
+            <option value="title-asc">Title A → Z</option>
+            <option value="title-desc">Title Z → A</option>
+            <option value="category">Category</option>
+            <option value="players">Players</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="results-bar">
+        <p class="results-meta"><strong id="results-count">0</strong> games shown</p>
+        <div class="view-toggle" aria-label="View options">
+          <button class="toggle-btn active" id="grid-view-btn" type="button">▦ Grid</button>
+          <button class="toggle-btn" id="list-view-btn" type="button">☰ List</button>
+        </div>
+      </div>
+
+      <div class="chip-row" id="quick-categories">
+        <button class="chip active" type="button" data-category="all">All</button>
+        <button class="chip" type="button" data-category="Arcade">Arcade</button>
+        <button class="chip" type="button" data-category="Puzzle">Puzzle</button>
+        <button class="chip" type="button" data-category="Word">Word</button>
+        <button class="chip" type="button" data-category="Board">Board</button>
+        <button class="chip" type="button" data-category="Memory">Memory</button>
+      </div>
+    </section>
+
+    <div class="game-grid" id="game-grid">
+      <a href="tetris.html" class="game-card" data-category="Arcade" data-players="1" data-title="Tetris" data-search="tetris arcade blocks stack falling lines">
         <div class="game-icon">🧱</div>
-        <h2>TETRIS</h2>
-        <p>Stack falling blocks, clear lines, chase high scores.</p>
-        <span class="badge">1 PLAYER</span>
+        <div class="game-body">
+          <h2>TETRIS</h2>
+          <p>Stack falling blocks, clear lines, chase high scores.</p>
+          <div class="meta-row"><span class="badge">1 PLAYER</span><span class="badge alt">ARCADE</span></div>
+        </div>
       </a>
-
-      <a href="snake.html" class="game-card">
+      <a href="snake.html" class="game-card" data-category="Arcade" data-players="1" data-title="Snake" data-search="snake arcade food grow classic">
         <div class="game-icon">🐍</div>
-        <h2>SNAKE</h2>
-        <p>Eat food, grow longer, don't hit the walls or yourself.</p>
-        <span class="badge">1 PLAYER</span>
+        <div class="game-body">
+          <h2>SNAKE</h2>
+          <p>Eat food, grow longer, don't hit the walls or yourself.</p>
+          <div class="meta-row"><span class="badge">1 PLAYER</span><span class="badge alt">ARCADE</span></div>
+        </div>
       </a>
-
-      <a href="2048.html" class="game-card">
+      <a href="2048.html" class="game-card" data-category="Puzzle" data-players="1" data-title="2048" data-search="2048 puzzle merge numbers tiles">
         <div class="game-icon">🔢</div>
-        <h2>2048</h2>
-        <p>Slide and merge tiles to reach the magic 2048 number.</p>
-        <span class="badge">1 PLAYER</span>
+        <div class="game-body">
+          <h2>2048</h2>
+          <p>Slide and merge tiles to reach the magic 2048 number.</p>
+          <div class="meta-row"><span class="badge">1 PLAYER</span><span class="badge alt">PUZZLE</span></div>
+        </div>
       </a>
-
-      <a href="breakout.html" class="game-card">
+      <a href="breakout.html" class="game-card" data-category="Arcade" data-players="1" data-title="Breakout" data-search="breakout arcade bricks paddle ball">
         <div class="game-icon">🏓</div>
-        <h2>BREAKOUT</h2>
-        <p>Bounce the ball, smash bricks, clear levels.</p>
-        <span class="badge">1 PLAYER</span>
+        <div class="game-body">
+          <h2>BREAKOUT</h2>
+          <p>Bounce the ball, smash bricks, clear levels.</p>
+          <div class="meta-row"><span class="badge">1 PLAYER</span><span class="badge alt">ARCADE</span></div>
+        </div>
       </a>
-
-      <a href="flappy.html" class="game-card">
+      <a href="flappy.html" class="game-card" data-category="Arcade" data-players="1" data-title="Flappy Bird" data-search="flappy bird arcade pipes tap">
         <div class="game-icon">🐦</div>
-        <h2>FLAPPY BIRD</h2>
-        <p>Tap to flap, dodge the pipes, survive as long as you can.</p>
-        <span class="badge">1 PLAYER</span>
+        <div class="game-body">
+          <h2>FLAPPY BIRD</h2>
+          <p>Tap to flap, dodge the pipes, survive as long as you can.</p>
+          <div class="meta-row"><span class="badge">1 PLAYER</span><span class="badge alt">ARCADE</span></div>
+        </div>
       </a>
-
-      <a href="minesweeper.html" class="game-card">
+      <a href="minesweeper.html" class="game-card" data-category="Puzzle" data-players="1" data-title="Minesweeper" data-search="minesweeper puzzle mines grid logic">
         <div class="game-icon">💣</div>
-        <h2>MINESWEEPER</h2>
-        <p>Reveal squares, flag mines, clear the board. Three difficulty levels.</p>
-        <span class="badge">1 PLAYER</span>
+        <div class="game-body">
+          <h2>MINESWEEPER</h2>
+          <p>Reveal squares, flag mines, clear the board. Three difficulty levels.</p>
+          <div class="meta-row"><span class="badge">1 PLAYER</span><span class="badge alt">PUZZLE</span></div>
+        </div>
       </a>
-
-      <a href="sudoku.html" class="game-card">
+      <a href="sudoku.html" class="game-card" data-category="Puzzle" data-players="1" data-title="Sudoku" data-search="sudoku puzzle number grid logic">
         <div class="game-icon">🔠</div>
-        <h2>SUDOKU</h2>
-        <p>Fill the 9×9 grid with numbers. Easy, medium, or hard puzzles.</p>
-        <span class="badge">1 PLAYER</span>
+        <div class="game-body">
+          <h2>SUDOKU</h2>
+          <p>Fill the 9×9 grid with numbers. Easy, medium, or hard puzzles.</p>
+          <div class="meta-row"><span class="badge">1 PLAYER</span><span class="badge alt">PUZZLE</span></div>
+        </div>
       </a>
-
-      <a href="wordle.html" class="game-card">
+      <a href="wordle.html" class="game-card" data-category="Word" data-players="1" data-title="Wordle" data-search="wordle word letters guess clues">
         <div class="game-icon">📝</div>
-        <h2>WORDLE</h2>
-        <p>Guess the 5-letter word in 6 tries with color-coded hints.</p>
-        <span class="badge">1 PLAYER</span>
+        <div class="game-body">
+          <h2>WORDLE</h2>
+          <p>Guess the 5-letter word in 6 tries with color-coded hints.</p>
+          <div class="meta-row"><span class="badge">1 PLAYER</span><span class="badge alt">WORD</span></div>
+        </div>
       </a>
-
-      <a href="spellbee.html" class="game-card">
+      <a href="spellbee.html" class="game-card" data-category="Word" data-players="1" data-title="Spell Bee" data-search="spell bee word hive letters dictionary">
         <div class="game-icon">🐝</div>
-        <h2>SPELL BEE</h2>
-        <p>Build words from a 7-letter hive with one required center letter.</p>
-        <span class="badge">1 PLAYER</span>
+        <div class="game-body">
+          <h2>SPELL BEE</h2>
+          <p>Build words from a 7-letter hive with one required center letter.</p>
+          <div class="meta-row"><span class="badge">1 PLAYER</span><span class="badge alt">WORD</span></div>
+        </div>
       </a>
-
-      <a href="wordsearch.html" class="game-card">
+      <a href="wordsearch.html" class="game-card" data-category="Word" data-players="1" data-title="Word Search" data-search="word search word grid hidden letters">
         <div class="game-icon">🔎</div>
-        <h2>WORD SEARCH</h2>
-        <p>Drag through the grid to find hidden words from the Wordle list.</p>
-        <span class="badge">1 PLAYER</span>
+        <div class="game-body">
+          <h2>WORD SEARCH</h2>
+          <p>Drag through the grid to find hidden words from the Wordle list.</p>
+          <div class="meta-row"><span class="badge">1 PLAYER</span><span class="badge alt">WORD</span></div>
+        </div>
       </a>
-
-      <a href="simon.html" class="game-card">
+      <a href="letterboxed.html" class="game-card" data-category="Word" data-players="1" data-title="Letter Boxed" data-search="letter boxed word sides chain nyt style letters">
+        <div class="game-icon">🟦</div>
+        <div class="game-body">
+          <h2>LETTER BOXED</h2>
+          <p>Chain words around the box, switch sides each letter, and use all 12 letters.</p>
+          <div class="meta-row"><span class="badge">1 PLAYER</span><span class="badge alt">WORD</span></div>
+        </div>
+      </a>
+      <a href="simon.html" class="game-card" data-category="Memory" data-players="1" data-title="Simon Says" data-search="simon says memory music pattern sequence">
         <div class="game-icon">🎵</div>
-        <h2>SIMON SAYS</h2>
-        <p>Watch the pattern, repeat it back. How far can you go?</p>
-        <span class="badge">1 PLAYER</span>
+        <div class="game-body">
+          <h2>SIMON SAYS</h2>
+          <p>Watch the pattern, repeat it back. How far can you go?</p>
+          <div class="meta-row"><span class="badge">1 PLAYER</span><span class="badge alt">MEMORY</span></div>
+        </div>
       </a>
-
-      <a href="digits.html" class="game-card">
+      <a href="digits.html" class="game-card" data-category="Puzzle" data-players="1" data-title="Digits" data-search="digits puzzle arithmetic target math">
         <div class="game-icon">🔢</div>
-        <h2>DIGITS</h2>
-        <p>Combine numbers with +, −, ×, ÷ to reach the target. 12 puzzles!</p>
-        <span class="badge">1 PLAYER</span>
+        <div class="game-body">
+          <h2>DIGITS</h2>
+          <p>Combine numbers with +, −, ×, ÷ to reach the target. 12 puzzles!</p>
+          <div class="meta-row"><span class="badge">1 PLAYER</span><span class="badge alt">PUZZLE</span></div>
+        </div>
       </a>
-
-      <a href="tictactoe.html" class="game-card">
+      <a href="tictactoe.html" class="game-card" data-category="Board" data-players="2" data-title="Tic Tac Toe" data-search="tic tac toe board strategy two player">
         <div class="game-icon">⭕</div>
-        <h2>TIC TAC TOE</h2>
-        <p>Classic and Move variant — two modes, pass and play.</p>
-        <span class="badge">2 PLAYERS</span>
+        <div class="game-body">
+          <h2>TIC TAC TOE</h2>
+          <p>Classic and Move variant — two modes, pass and play.</p>
+          <div class="meta-row"><span class="badge">2 PLAYERS</span><span class="badge alt">BOARD</span></div>
+        </div>
       </a>
-
-      <a href="connect4.html" class="game-card">
+      <a href="connect4.html" class="game-card" data-category="Board" data-players="2" data-title="Connect Four" data-search="connect four board strategy two player">
         <div class="game-icon">🔴</div>
-        <h2>CONNECT FOUR</h2>
-        <p>Drop discs, connect 4 in a row to win. Classic strategy.</p>
-        <span class="badge">2 PLAYERS</span>
+        <div class="game-body">
+          <h2>CONNECT FOUR</h2>
+          <p>Drop discs, connect 4 in a row to win. Classic strategy.</p>
+          <div class="meta-row"><span class="badge">2 PLAYERS</span><span class="badge alt">BOARD</span></div>
+        </div>
       </a>
-
-      <a href="pong.html" class="game-card">
+      <a href="pong.html" class="game-card" data-category="Arcade" data-players="2" data-title="Pong" data-search="pong arcade paddles two player">
         <div class="game-icon">🏸</div>
-        <h2>PONG</h2>
-        <p>The original arcade game. Two paddles, one ball, pure rivalry.</p>
-        <span class="badge">2 PLAYERS</span>
+        <div class="game-body">
+          <h2>PONG</h2>
+          <p>The original arcade game. Two paddles, one ball, pure rivalry.</p>
+          <div class="meta-row"><span class="badge">2 PLAYERS</span><span class="badge alt">ARCADE</span></div>
+        </div>
       </a>
-
-      <a href="checkers.html" class="game-card">
+      <a href="checkers.html" class="game-card" data-category="Board" data-players="2" data-title="Checkers" data-search="checkers board kings strategy two player">
         <div class="game-icon">♟️</div>
-        <h2>CHECKERS</h2>
-        <p>Jump and capture your opponent's pieces. Kings rule the board.</p>
-        <span class="badge">2 PLAYERS</span>
+        <div class="game-body">
+          <h2>CHECKERS</h2>
+          <p>Jump and capture your opponent's pieces. Kings rule the board.</p>
+          <div class="meta-row"><span class="badge">2 PLAYERS</span><span class="badge alt">BOARD</span></div>
+        </div>
       </a>
-
-      <a href="jigsaw.html" class="game-card">
+      <a href="jigsaw.html" class="game-card" data-category="Puzzle" data-players="1" data-title="Jigsaw" data-search="jigsaw puzzle image swap pieces">
         <div class="game-icon">🧩</div>
-        <h2>JIGSAW</h2>
-        <p>Swap pieces to recreate the picture. Seven scenes, three difficulties!</p>
-        <span class="badge">1 PLAYER</span>
+        <div class="game-body">
+          <h2>JIGSAW</h2>
+          <p>Swap pieces to recreate the picture. Seven scenes, three difficulties!</p>
+          <div class="meta-row"><span class="badge">1 PLAYER</span><span class="badge alt">PUZZLE</span></div>
+        </div>
       </a>
     </div>
+
+    <div class="empty-state" id="empty-state">No games match those filters. Try clearing search or changing category.</div>
 
     <footer>
       Built with vanilla HTML, CSS &amp; JS &mdash; host free on <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>
     </footer>
   </div>
+
+  <script>
+    (()=>{
+      const grid=document.getElementById('game-grid');
+      const cards=[...grid.querySelectorAll('.game-card')];
+      const searchInput=document.getElementById('search-input');
+      const categorySelect=document.getElementById('category-select');
+      const playerSelect=document.getElementById('player-select');
+      const sortSelect=document.getElementById('sort-select');
+      const resultsCount=document.getElementById('results-count');
+      const emptyState=document.getElementById('empty-state');
+      const gridBtn=document.getElementById('grid-view-btn');
+      const listBtn=document.getElementById('list-view-btn');
+      const chips=[...document.querySelectorAll('#quick-categories .chip')];
+
+      cards.forEach((card,index)=> card.dataset.order=index);
+
+      function compareCards(a,b,mode){
+        if(mode==='title-asc') return a.dataset.title.localeCompare(b.dataset.title);
+        if(mode==='title-desc') return b.dataset.title.localeCompare(a.dataset.title);
+        if(mode==='category') return a.dataset.category.localeCompare(b.dataset.category)||a.dataset.title.localeCompare(b.dataset.title);
+        if(mode==='players') return Number(a.dataset.players)-Number(b.dataset.players)||a.dataset.title.localeCompare(b.dataset.title);
+        return Number(a.dataset.order)-Number(b.dataset.order);
+      }
+
+      function syncChipState(category){
+        chips.forEach(chip=>chip.classList.toggle('active',chip.dataset.category===category));
+      }
+
+      function applyFilters(){
+        const search=searchInput.value.trim().toLowerCase();
+        const category=categorySelect.value;
+        const players=playerSelect.value;
+        const sort=sortSelect.value;
+
+        const sorted=cards.slice().sort((a,b)=>compareCards(a,b,sort));
+        sorted.forEach(card=>grid.appendChild(card));
+
+        let visible=0;
+        cards.forEach(card=>{
+          const matchesSearch=!search||card.dataset.search.toLowerCase().includes(search)||card.dataset.title.toLowerCase().includes(search);
+          const matchesCategory=category==='all'||card.dataset.category===category;
+          const matchesPlayers=players==='all'||card.dataset.players===players;
+          const show=matchesSearch&&matchesCategory&&matchesPlayers;
+          card.classList.toggle('hidden',!show);
+          if(show) visible++;
+        });
+
+        resultsCount.textContent=visible;
+        emptyState.style.display=visible?'none':'block';
+      }
+
+      function setView(mode){
+        grid.classList.toggle('list-view',mode==='list');
+        gridBtn.classList.toggle('active',mode==='grid');
+        listBtn.classList.toggle('active',mode==='list');
+      }
+
+      searchInput.addEventListener('input',applyFilters);
+      categorySelect.addEventListener('change',()=>{ syncChipState(categorySelect.value); applyFilters(); });
+      playerSelect.addEventListener('change',applyFilters);
+      sortSelect.addEventListener('change',applyFilters);
+      gridBtn.addEventListener('click',()=>setView('grid'));
+      listBtn.addEventListener('click',()=>setView('list'));
+      chips.forEach(chip=>chip.addEventListener('click',()=>{
+        categorySelect.value=chip.dataset.category;
+        syncChipState(chip.dataset.category);
+        applyFilters();
+      }));
+
+      syncChipState('all');
+      applyFilters();
+    })();
+  </script>
 </body>
 </html>
