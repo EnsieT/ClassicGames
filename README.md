@@ -1,6 +1,6 @@
 # Classic Games
 
-A collection of 13 browser-based classic games built with vanilla HTML, CSS & JavaScript.  
+A collection of browser-based classic games built with vanilla HTML, CSS & JavaScript.  
 No dependencies. No build step. Just open `index.html` or deploy to GitHub Pages.
 
 ## Games
@@ -16,7 +16,10 @@ No dependencies. No build step. Just open `index.html` or deploy to GitHub Pages
 | **Minesweeper** | Reveal & flag. Easy (9×9), Medium (16×16), Hard (16×30) |
 | **Sudoku** | Generated puzzles at 3 difficulties. Keyboard + click input |
 | **Wordle** | Guess the 5-letter word in 6 tries. Stats tracked |
+| **Spell Bee** | Make words from a 7-letter hive with one required center letter |
+| **Word Search** | Find hidden words in a letter grid built from the Wordle list |
 | **Simon Says** | Memorise & repeat color/sound sequences. High scores |
+| **Jigsaw** | Swap picture tiles into place. Multiple scenes and difficulties |
 
 ### Two Player (same device)
 | Game | Description |

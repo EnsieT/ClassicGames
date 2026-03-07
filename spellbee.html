@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Spell Bee — Classic Games</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0f0f1a;color:#e0e0e0;font-family:'Segoe UI','Consolas',monospace;display:flex;justify-content:center;align-items:center;min-height:100vh}
+    #app{display:flex;flex-direction:column;align-items:center;gap:14px;padding:20px;max-width:760px;width:100%}
+    .back-link{align-self:flex-start;color:#00e5ff;text-decoration:none;font-size:.85rem}.back-link:hover{color:#fff}
+    h1{font-size:2rem;letter-spacing:.45rem;color:#00e5ff;text-shadow:0 0 12px #00e5ff88}
+    .stats{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;font-size:.9rem}.stats span{color:#888}.stats strong{color:#fff}
+    #rank{color:#f0a000}
+    #layout{display:grid;grid-template-columns:minmax(280px,360px) minmax(260px,1fr);gap:18px;width:100%;align-items:start}
+    .panel{background:#1a1a2e;border:1px solid #333;border-radius:12px;padding:16px}
+    #hive-panel{display:flex;flex-direction:column;align-items:center;gap:14px}
+    #word-display{width:100%;min-height:54px;border:2px solid #333;border-radius:10px;display:flex;justify-content:center;align-items:center;font-size:1.5rem;letter-spacing:.25rem;text-transform:uppercase;color:#fff;background:#111;padding:0 12px;text-align:center;word-break:break-all}
+    #word-display.center-missing{border-color:#f44336;color:#ffb3b3}
+    #hive{position:relative;width:260px;height:240px}
+    .hex{position:absolute;width:74px;height:74px;clip-path:polygon(50% 0,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);border:none;background:#252542;color:#fff;font:700 1.45rem inherit;text-transform:uppercase;cursor:pointer;transition:transform .12s,background .2s,box-shadow .2s}
+    .hex:hover{transform:scale(1.05);background:#2f2f57;box-shadow:0 0 14px #00e5ff33}
+    .hex.center{background:#f0a000;color:#111;box-shadow:0 0 16px #f0a00055}
+    .hex.center:hover{background:#ffb300}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+    button.action{background:#1a1a2e;border:2px solid #333;color:#ccc;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:.82rem;transition:border-color .2s,color .2s,transform .12s}
+    button.action:hover{border-color:#00e5ff;color:#fff}
+    button.action:active{transform:scale(.97)}
+    #status{min-height:1.4em;text-align:center;font-size:.92rem;color:#888}
+    #found-panel{display:flex;flex-direction:column;gap:12px;min-height:100%}
+    #progress{font-size:.85rem;color:#888;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    #found-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;list-style:none;max-height:360px;overflow:auto;padding-right:4px}
+    #found-list li{padding:8px 10px;border-radius:8px;background:#111;border:1px solid #2c2c42;color:#ccc;font-size:.82rem;text-transform:uppercase;letter-spacing:.08rem}
+    #found-list li.pangram{border-color:#f0a000;color:#ffd27a}
+    .hint{font-size:.78rem;color:#888;line-height:1.5}
+    details.rules{background:#1a1a2e;border:1px solid #333;border-radius:8px;padding:0;margin:0 auto;max-width:680px;width:100%;font-size:.78rem;color:#aaa}
+    details.rules summary{cursor:pointer;padding:8px 14px;color:#888;font-size:.8rem;letter-spacing:.08rem;list-style:none;user-select:none}
+    details.rules summary::-webkit-details-marker{display:none}
+    details.rules summary::before{content:"▸ ";color:#00e5ff}details.rules[open] summary::before{content:"▾ "}
+    details.rules .rules-body{padding:4px 14px 12px}details.rules .rules-body h4{color:#00e5ff;font-size:.75rem;margin:8px 0 4px;letter-spacing:.06rem}
+    details.rules .rules-body ul{padding-left:16px;margin:0}details.rules .rules-body li{margin:2px 0;line-height:1.5}
+    details.rules .rules-body kbd{background:#252542;border:1px solid #444;border-radius:3px;padding:1px 5px;font-size:.72rem;color:#ccc}
+    @media(max-width:720px){
+      #layout{grid-template-columns:1fr}
+      #hive{transform:scale(.94)}
+      h1{font-size:1.6rem;letter-spacing:.3rem}
+      #app{padding:14px}
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <a href="index.html" class="back-link">← Back to Games</a>
+    <h1>SPELL BEE</h1>
+    <details class="rules"><summary>Rules &amp; Controls</summary><div class="rules-body">
+      <h4>RULES</h4>
+      <ul>
+        <li>Make words using only the 7 hive letters</li>
+        <li>The <strong>center letter</strong> must appear in every word</li>
+        <li>Words must be at least 4 letters long</li>
+        <li>Find a <strong>pangram</strong> by using all 7 letters</li>
+      </ul>
+      <h4>CONTROLS</h4>
+      <ul>
+        <li>Click letters, or type on your keyboard</li>
+        <li><kbd>Enter</kbd> submit, <kbd>Backspace</kbd> delete, <kbd>Space</kbd> shuffle outer letters</li>
+        <li>Built from the same Wordle word list used in this project</li>
+      </ul>
+    </div></details>
+
+    <div class="stats">
+      <span>Score: <strong id="score">0</strong></span>
+      <span>Found: <strong id="found-count">0</strong></span>
+      <span>Possible: <strong id="possible-count">0</strong></span>
+      <span>Rank: <strong id="rank">Beginner</strong></span>
+    </div>
+
+    <div id="layout">
+      <section id="hive-panel" class="panel">
+        <div id="word-display"></div>
+        <div id="hive"></div>
+        <div class="actions">
+          <button id="submit-btn" class="action">✅ Submit</button>
+          <button id="delete-btn" class="action">⌫ Delete</button>
+          <button id="shuffle-btn" class="action">🔀 Shuffle</button>
+          <button id="new-btn" class="action">🐝 New Hive</button>
+        </div>
+        <p id="status"></p>
+        <p class="hint">4-letter words score 1 point. Longer words score their length. Pangrams earn a 7-point bonus.</p>
+      </section>
+
+      <section id="found-panel" class="panel">
+        <div id="progress">
+          <span>Center letter: <strong id="center-letter"></strong></span>
+          <span>Pangrams left: <strong id="pangram-count">0</strong></span>
+        </div>
+        <ul id="found-list"></ul>
+      </section>
+    </div>
+  </div>
+
+<script src="words.js"></script>
+<script>
+(()=>{
+  const hiveEl=document.getElementById('hive');
+  const wordDisplay=document.getElementById('word-display');
+  const statusEl=document.getElementById('status');
+  const scoreEl=document.getElementById('score');
+  const foundCountEl=document.getElementById('found-count');
+  const possibleCountEl=document.getElementById('possible-count');
+  const rankEl=document.getElementById('rank');
+  const foundListEl=document.getElementById('found-list');
+  const centerLetterEl=document.getElementById('center-letter');
+  const pangramCountEl=document.getElementById('pangram-count');
+  const submitBtn=document.getElementById('submit-btn');
+  const deleteBtn=document.getElementById('delete-btn');
+  const shuffleBtn=document.getElementById('shuffle-btn');
+  const newBtn=document.getElementById('new-btn');
+
+  const positions=[
+    {left:93,top:0},
+    {left:154,top:35},
+    {left:154,top:108},
+    {left:93,top:144},
+    {left:32,top:108},
+    {left:32,top:35},
+    {left:93,top:72}
+  ];
+
+  function maskOf(word){
+    let mask=0;
+    for(const ch of word) mask|=1<<(ch.charCodeAt(0)-97);
+    return mask;
+  }
+  function popcount(mask){
+    let n=0;
+    while(mask){mask&=mask-1;n++;}
+    return n;
+  }
+
+  const rawWords=Array.from(new Set([...WORDLE_ANSWERS,...WORDLE_VALID]));
+  const wordBank=rawWords
+    .filter(word=>/^[a-z]{4,9}$/.test(word))
+    .map(word=>({word,length:word.length,mask:maskOf(word)}));
+  const seedBank=wordBank.filter(item=>popcount(item.mask)===7&&item.length>=7);
+
+  let center='';
+  let letters=[];
+  let currentWord='';
+  let foundWords=new Set();
+  let validWords=[];
+  let pangrams=[];
+  let totalScore=0;
+  let score=0;
+
+  function shuffle(arr){
+    const copy=arr.slice();
+    for(let i=copy.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [copy[i],copy[j]]=[copy[j],copy[i]];
+    }
+    return copy;
+  }
+
+  function scoreWord(word){
+    const base=word.length===4?1:word.length;
+    return base+(isPangram(word)?7:0);
+  }
+
+  function isPangram(word){
+    const unique=maskOf(word);
+    return unique===maskOf(letters.join(''));
+  }
+
+  function computeRank(){
+    if(!totalScore) return 'Beginner';
+    const pct=score/totalScore;
+    if(pct>=1) return 'Queen Bee';
+    if(pct>=0.8) return 'Genius';
+    if(pct>=0.65) return 'Amazing';
+    if(pct>=0.5) return 'Great';
+    if(pct>=0.35) return 'Solid';
+    if(pct>=0.2) return 'Moving Up';
+    if(pct>0) return 'Good Start';
+    return 'Beginner';
+  }
+
+  function setStatus(msg,color='#888'){
+    statusEl.textContent=msg;
+    statusEl.style.color=color;
+  }
+
+  function updateWordDisplay(){
+    wordDisplay.textContent=currentWord||'TAP OR TYPE';
+    const missingCenter=currentWord&&!currentWord.includes(center);
+    wordDisplay.classList.toggle('center-missing',missingCenter);
+  }
+
+  function renderHive(){
+    hiveEl.innerHTML='';
+    const outer=letters.filter(ch=>ch!==center);
+    const order=[outer[0],outer[1],outer[2],outer[3],outer[4],outer[5],center];
+    order.forEach((ch,index)=>{
+      const btn=document.createElement('button');
+      btn.className='hex'+(index===6?' center':'');
+      btn.style.left=positions[index].left+'px';
+      btn.style.top=positions[index].top+'px';
+      btn.textContent=ch;
+      btn.addEventListener('click',()=>addLetter(ch));
+      hiveEl.appendChild(btn);
+    });
+  }
+
+  function renderFoundWords(){
+    foundListEl.innerHTML='';
+    const list=[...foundWords].sort((a,b)=>a.length===b.length?a.localeCompare(b):b.length-a.length);
+    list.forEach(word=>{
+      const li=document.createElement('li');
+      li.textContent=word;
+      if(isPangram(word)) li.classList.add('pangram');
+      foundListEl.appendChild(li);
+    });
+    if(!list.length){
+      const li=document.createElement('li');
+      li.textContent='No words yet';
+      li.style.textTransform='none';
+      li.style.letterSpacing='normal';
+      li.style.color='#666';
+      foundListEl.appendChild(li);
+    }
+  }
+
+  function updateStats(){
+    scoreEl.textContent=score;
+    foundCountEl.textContent=foundWords.size;
+    possibleCountEl.textContent=validWords.length;
+    rankEl.textContent=computeRank();
+    centerLetterEl.textContent=center.toUpperCase();
+    pangramCountEl.textContent=Math.max(0,pangrams.filter(word=>!foundWords.has(word)).length);
+  }
+
+  function addLetter(ch){
+    if(!letters.includes(ch)) return;
+    if(currentWord.length>=18) return;
+    currentWord+=ch;
+    updateWordDisplay();
+  }
+
+  function deleteLetter(){
+    currentWord=currentWord.slice(0,-1);
+    updateWordDisplay();
+  }
+
+  function shuffleOuter(){
+    const outer=shuffle(letters.filter(ch=>ch!==center));
+    letters=[center,...outer];
+    renderHive();
+  }
+
+  function submitWord(){
+    const word=currentWord.toLowerCase();
+    if(word.length<4){setStatus('Need at least 4 letters','#f0a000');return;}
+    if(!word.includes(center)){setStatus('Every word must use the center letter','#f44336');return;}
+    if([...word].some(ch=>!letters.includes(ch))){setStatus('Use only the hive letters','#f44336');return;}
+    if(foundWords.has(word)){setStatus('Already found that word','#f0a000');return;}
+    if(!validWords.includes(word)){setStatus('Not in this hive\'s word list','#f44336');return;}
+    foundWords.add(word);
+    score+=scoreWord(word);
+    renderFoundWords();
+    updateStats();
+    setStatus(isPangram(word)?'Pangram! 🐝':'Nice find!','#4caf50');
+    currentWord='';
+    updateWordDisplay();
+  }
+
+  function buildPuzzle(){
+    for(let attempt=0;attempt<220;attempt++){
+      const seed=seedBank[Math.floor(Math.random()*seedBank.length)].word;
+      const seedLetters=[...new Set(seed)];
+      const hiveMask=maskOf(seedLetters.join(''));
+      const centerOrder=shuffle(seedLetters);
+      for(const candidateCenter of centerOrder){
+        const candidates=wordBank.filter(item=>
+          item.length>=4&&
+          item.word.includes(candidateCenter)&&
+          (item.mask&~hiveMask)===0
+        ).map(item=>item.word);
+        const pangramList=candidates.filter(word=>maskOf(word)===hiveMask);
+        const scoreTotal=candidates.reduce((sum,word)=>sum+scoreWord(word),0);
+        if(candidates.length>=14&&pangramList.length>=1&&scoreTotal>=45){
+          center=candidateCenter;
+          letters=[center,...shuffle(seedLetters.filter(ch=>ch!==center))];
+          validWords=candidates.sort();
+          pangrams=pangramList.sort();
+          totalScore=scoreTotal;
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function newPuzzle(){
+    foundWords=new Set();
+    currentWord='';
+    score=0;
+    if(!buildPuzzle()){
+      setStatus('Could not build a hive right now. Try again.','#f44336');
+      return;
+    }
+    renderHive();
+    renderFoundWords();
+    updateWordDisplay();
+    updateStats();
+    setStatus('Find as many words as you can.','#888');
+  }
+
+  document.addEventListener('keydown',e=>{
+    if(e.ctrlKey||e.altKey||e.metaKey) return;
+    if(e.key==='Enter'){submitWord();return;}
+    if(e.key==='Backspace'){deleteLetter();return;}
+    if(e.key===' '){e.preventDefault();shuffleOuter();return;}
+    if(/^[a-z]$/i.test(e.key)) addLetter(e.key.toLowerCase());
+  });
+
+  submitBtn.addEventListener('click',submitWord);
+  deleteBtn.addEventListener('click',deleteLetter);
+  shuffleBtn.addEventListener('click',shuffleOuter);
+  newBtn.addEventListener('click',newPuzzle);
+
+  newPuzzle();
+})();
+</script>
+</body>
+</html>
