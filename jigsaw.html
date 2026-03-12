@@ -90,6 +90,11 @@
         <option value="car">🚗 Car</option>
         <option value="bowmouse">🎀 Mouse</option>
         <option value="elephant">🐘 Elephant</option>
+        <option value="castle">🏰 Castle</option>
+        <option value="aquarium">🐠 Aquarium</option>
+        <option value="snowman">⛄ Snowman</option>
+        <option value="lighthouse">🌅 Lighthouse</option>
+        <option value="cityscape">🏙️ Cityscape</option>
       </select>
       <select id="diff-select" class="action">
         <option value="3">Easy (3×3)</option>
@@ -187,6 +192,11 @@
       case 'car': drawCar(ctx,w,h); break;
       case 'bowmouse': drawBowMouse(ctx,w,h); break;
       case 'elephant': drawElephant(ctx,w,h); break;
+      case 'castle': drawCastle(ctx,w,h); break;
+      case 'aquarium': drawAquarium(ctx,w,h); break;
+      case 'snowman': drawSnowman(ctx,w,h); break;
+      case 'lighthouse': drawLighthouse(ctx,w,h); break;
+      case 'cityscape': drawCityscape(ctx,w,h); break;
       default: drawHouse(ctx,w,h);
     }
   }
@@ -830,43 +840,558 @@
 
   /* ── ELEPHANT SCENE ── */
   function drawElephant(ctx,w,h){
-    let sky=ctx.createLinearGradient(0,0,0,h);
-    sky.addColorStop(0,'#FFE082'); sky.addColorStop(0.45,'#FFCC80'); sky.addColorStop(1,'#FFF3E0');
+    // African savanna background
+    let sky=ctx.createLinearGradient(0,0,0,h*0.55);
+    sky.addColorStop(0,'#FF8F00'); sky.addColorStop(0.5,'#FFB74D'); sky.addColorStop(1,'#FFE0B2');
     ctx.fillStyle=sky; ctx.fillRect(0,0,w,h);
-    ctx.fillStyle='#FFEE58'; ctx.beginPath(); ctx.arc(w*0.18,h*0.16,w*0.075,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle='#D7CCC8';
-    ctx.beginPath(); ctx.moveTo(0,h*0.62); ctx.quadraticCurveTo(w*0.2,h*0.5,w*0.38,h*0.62); ctx.quadraticCurveTo(w*0.6,h*0.74,w,h*0.6); ctx.lineTo(w,h); ctx.lineTo(0,h); ctx.closePath(); ctx.fill();
-    ctx.fillStyle='#C5E1A5'; ctx.fillRect(0,h*0.78,w,h*0.22);
-    for(let i=0;i<3;i++){
-      const tx=w*(0.12+i*0.28), th=h*(0.18+((i+1)%2)*0.03);
-      ctx.fillStyle='#8D6E63'; ctx.fillRect(tx,h*0.56,th*0.08,th*0.22);
-      ctx.fillStyle='#7CB342'; ctx.beginPath(); ctx.arc(tx+th*0.04,h*0.54,th*0.12,0,Math.PI*2); ctx.fill();
-    }
-    ctx.fillStyle='#90A4AE';
-    ctx.beginPath(); ctx.ellipse(w*0.52,h*0.58,w*0.21,h*0.14,0,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(w*0.37,h*0.54,w*0.08,h*0.11,-0.35,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(w*0.61,h*0.5,w*0.11,h*0.09,0,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle='#B0BEC5';
-    ctx.beginPath(); ctx.ellipse(w*0.39,h*0.53,w*0.06,h*0.09,-0.4,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle='#90A4AE';
-    ctx.beginPath();
-    ctx.moveTo(w*0.69,h*0.54);
-    ctx.quadraticCurveTo(w*0.79,h*0.62,w*0.73,h*0.78);
-    ctx.quadraticCurveTo(w*0.69,h*0.84,w*0.66,h*0.76);
-    ctx.quadraticCurveTo(w*0.71,h*0.66,w*0.63,h*0.58);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle='#ECEFF1';
-    ctx.beginPath(); ctx.moveTo(w*0.62,h*0.57); ctx.lineTo(w*0.67,h*0.63); ctx.lineTo(w*0.63,h*0.64); ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(w*0.58,h*0.58); ctx.lineTo(w*0.63,h*0.65); ctx.lineTo(w*0.59,h*0.655); ctx.closePath(); ctx.fill();
+    // sun
+    ctx.fillStyle='#FFF176'; ctx.beginPath(); ctx.arc(w*0.82,h*0.14,w*0.08,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#FFEE58'; ctx.beginPath(); ctx.arc(w*0.82,h*0.14,w*0.055,0,Math.PI*2); ctx.fill();
+    // ground - savanna
+    let grd=ctx.createLinearGradient(0,h*0.55,0,h);
+    grd.addColorStop(0,'#C5E1A5'); grd.addColorStop(0.4,'#AED581'); grd.addColorStop(1,'#8BC34A');
+    ctx.fillStyle=grd; ctx.fillRect(0,h*0.55,w,h*0.45);
+    // distant hills
+    ctx.fillStyle='#A5D6A7';
+    ctx.beginPath(); ctx.moveTo(0,h*0.58);
+    ctx.quadraticCurveTo(w*0.15,h*0.48,w*0.3,h*0.56);
+    ctx.quadraticCurveTo(w*0.5,h*0.64,w*0.7,h*0.54);
+    ctx.quadraticCurveTo(w*0.85,h*0.48,w,h*0.55);
+    ctx.lineTo(w,h*0.58); ctx.lineTo(0,h*0.58); ctx.closePath(); ctx.fill();
+    // acacia tree left
+    ctx.fillStyle='#6D4C41'; ctx.fillRect(w*0.08-2,h*0.38,4,h*0.2);
+    ctx.fillStyle='#558B2F';
+    ctx.beginPath(); ctx.ellipse(w*0.08,h*0.36,w*0.07,h*0.04,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(w*0.06,h*0.33,w*0.04,h*0.03,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(w*0.1,h*0.34,w*0.04,h*0.025,0,0,Math.PI*2); ctx.fill();
+    // acacia tree right
+    ctx.fillStyle='#6D4C41'; ctx.fillRect(w*0.88-2,h*0.4,4,h*0.18);
+    ctx.fillStyle='#558B2F';
+    ctx.beginPath(); ctx.ellipse(w*0.88,h*0.38,w*0.06,h*0.035,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(w*0.86,h*0.36,w*0.035,h*0.025,0,0,Math.PI*2); ctx.fill();
+    // ELEPHANT - body
     ctx.fillStyle='#78909C';
-    [[0.42,0.68],[0.5,0.7],[0.58,0.7],[0.66,0.68]].forEach(([lx,ly])=>ctx.fillRect(w*lx,h*ly,w*0.04,h*0.15));
-    ctx.fillStyle='#263238'; ctx.beginPath(); ctx.arc(w*0.64,h*0.48,w*0.012,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle='#FFFFFF'; ctx.beginPath(); ctx.arc(w*0.645,h*0.476,w*0.004,0,Math.PI*2); ctx.fill();
-    ctx.strokeStyle='#6D4C41'; ctx.lineWidth=2;
-    for(let i=0;i<5;i++){
-      ctx.beginPath(); ctx.moveTo(w*(0.2+i*0.14),h*0.92); ctx.lineTo(w*(0.18+i*0.14),h*0.84); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(w*0.5,h*0.6,w*0.18,h*0.12,0,0,Math.PI*2); ctx.fill();
+    // head
+    ctx.beginPath(); ctx.ellipse(w*0.68,h*0.52,w*0.1,h*0.09,0.15,0,Math.PI*2); ctx.fill();
+    // ears
+    ctx.fillStyle='#90A4AE';
+    ctx.beginPath(); ctx.ellipse(w*0.74,h*0.46,w*0.07,h*0.08,-0.2,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#B0BEC5';
+    ctx.beginPath(); ctx.ellipse(w*0.74,h*0.46,w*0.045,h*0.055,-0.2,0,Math.PI*2); ctx.fill();
+    // trunk
+    ctx.fillStyle='#78909C';
+    ctx.lineWidth=w*0.04; ctx.strokeStyle='#78909C'; ctx.lineCap='round';
+    ctx.beginPath();
+    ctx.moveTo(w*0.76,h*0.56);
+    ctx.quadraticCurveTo(w*0.82,h*0.65,w*0.78,h*0.74);
+    ctx.quadraticCurveTo(w*0.76,h*0.78,w*0.73,h*0.76);
+    ctx.stroke();
+    // trunk tip curl
+    ctx.lineWidth=w*0.03;
+    ctx.beginPath();
+    ctx.moveTo(w*0.73,h*0.76);
+    ctx.quadraticCurveTo(w*0.71,h*0.78,w*0.72,h*0.74);
+    ctx.stroke();
+    // legs
+    ctx.fillStyle='#78909C';
+    ctx.beginPath(); ctx.roundRect(w*0.37,h*0.66,w*0.06,h*0.18,w*0.02); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(w*0.45,h*0.67,w*0.06,h*0.18,w*0.02); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(w*0.55,h*0.66,w*0.06,h*0.18,w*0.02); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(w*0.63,h*0.65,w*0.06,h*0.18,w*0.02); ctx.fill();
+    // toenails
+    ctx.fillStyle='#B0BEC5';
+    [[0.37,0.83],[0.45,0.84],[0.55,0.83],[0.63,0.82]].forEach(([lx,ly])=>{
+      ctx.beginPath(); ctx.arc(w*(lx+0.03),h*ly,w*0.012,0,Math.PI); ctx.fill();
+    });
+    // tail
+    ctx.strokeStyle='#607D8B'; ctx.lineWidth=3; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(w*0.33,h*0.57);
+    ctx.quadraticCurveTo(w*0.27,h*0.52,w*0.25,h*0.56); ctx.stroke();
+    ctx.fillStyle='#546E7A';
+    ctx.beginPath(); ctx.arc(w*0.25,h*0.56,w*0.012,0,Math.PI*2); ctx.fill();
+    // eye
+    ctx.fillStyle='#263238'; ctx.beginPath(); ctx.arc(w*0.72,h*0.5,w*0.012,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#FFF'; ctx.beginPath(); ctx.arc(w*0.723,h*0.497,w*0.005,0,Math.PI*2); ctx.fill();
+    // tusk
+    ctx.fillStyle='#ECEFF1';
+    ctx.beginPath();
+    ctx.moveTo(w*0.73,h*0.58);
+    ctx.quadraticCurveTo(w*0.77,h*0.63,w*0.75,h*0.67);
+    ctx.quadraticCurveTo(w*0.74,h*0.64,w*0.72,h*0.59);
+    ctx.closePath(); ctx.fill();
+    // birds in sky
+    ctx.strokeStyle='#5D4037'; ctx.lineWidth=1.5;
+    [[0.3,0.15],[0.38,0.12],[0.5,0.18]].forEach(([bx,by])=>{
+      ctx.beginPath(); ctx.arc(w*bx-4,h*by,5,Math.PI+0.3,Math.PI*2-0.3); ctx.stroke();
+      ctx.beginPath(); ctx.arc(w*bx+4,h*by,5,Math.PI+0.3,Math.PI*2-0.3); ctx.stroke();
+    });
+    // grass tufts
+    ctx.strokeStyle='#689F38'; ctx.lineWidth=2;
+    let seed=42;
+    function srand(){seed=(seed*16807)%2147483647;return(seed-1)/2147483646;}
+    for(let i=0;i<12;i++){
+      let gx=srand()*w, gy=h*0.82+srand()*h*0.15;
+      ctx.beginPath(); ctx.moveTo(gx,gy); ctx.lineTo(gx-4,gy-h*0.03); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(gx,gy); ctx.lineTo(gx+4,gy-h*0.025); ctx.stroke();
     }
+  }
+
+  /* ── CASTLE SCENE ── */
+  function drawCastle(ctx,w,h){
+    // sky
+    let g=ctx.createLinearGradient(0,0,0,h*0.6);
+    g.addColorStop(0,'#1A237E'); g.addColorStop(0.5,'#283593'); g.addColorStop(1,'#5C6BC0');
+    ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+    // stars
+    let seed=31;
+    function srand(){seed=(seed*16807)%2147483647;return(seed-1)/2147483646;}
+    for(let i=0;i<60;i++){
+      ctx.fillStyle=`rgba(255,255,255,${0.3+srand()*0.7})`;
+      ctx.beginPath(); ctx.arc(srand()*w,srand()*h*0.5,srand()*2+0.5,0,Math.PI*2); ctx.fill();
+    }
+    // moon
+    ctx.fillStyle='#FFF9C4'; ctx.beginPath(); ctx.arc(w*0.85,h*0.12,w*0.06,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(w*0.87,h*0.1,w*0.05,0,Math.PI*2); ctx.fill();
+    // ground
+    let gg=ctx.createLinearGradient(0,h*0.65,0,h);
+    gg.addColorStop(0,'#2E7D32'); gg.addColorStop(1,'#1B5E20');
+    ctx.fillStyle=gg; ctx.fillRect(0,h*0.65,w,h*0.35);
+    // castle wall
+    ctx.fillStyle='#78909C'; ctx.fillRect(w*0.2,h*0.35,w*0.6,h*0.32);
+    // stone texture
+    ctx.strokeStyle='#607D8B'; ctx.lineWidth=1;
+    for(let y=h*0.35;y<h*0.67;y+=h*0.04){
+      ctx.beginPath(); ctx.moveTo(w*0.2,y); ctx.lineTo(w*0.8,y); ctx.stroke();
+    }
+    for(let x=w*0.2;x<w*0.8;x+=w*0.06){
+      ctx.beginPath(); ctx.moveTo(x,h*0.35); ctx.lineTo(x,h*0.67); ctx.stroke();
+    }
+    // left tower
+    ctx.fillStyle='#607D8B'; ctx.fillRect(w*0.12,h*0.22,w*0.14,h*0.45);
+    // left tower roof
+    ctx.fillStyle='#C62828';
+    ctx.beginPath(); ctx.moveTo(w*0.1,h*0.22); ctx.lineTo(w*0.19,h*0.08); ctx.lineTo(w*0.28,h*0.22); ctx.closePath(); ctx.fill();
+    // right tower
+    ctx.fillStyle='#607D8B'; ctx.fillRect(w*0.74,h*0.22,w*0.14,h*0.45);
+    // right tower roof
+    ctx.fillStyle='#C62828';
+    ctx.beginPath(); ctx.moveTo(w*0.72,h*0.22); ctx.lineTo(w*0.81,h*0.08); ctx.lineTo(w*0.9,h*0.22); ctx.closePath(); ctx.fill();
+    // battlements
+    ctx.fillStyle='#78909C';
+    for(let x=w*0.2;x<w*0.8;x+=w*0.06){
+      ctx.fillRect(x,h*0.31,w*0.04,h*0.04);
+    }
+    for(let x=w*0.12;x<w*0.26;x+=w*0.05){
+      ctx.fillRect(x,h*0.18,w*0.035,h*0.04);
+    }
+    for(let x=w*0.74;x<w*0.88;x+=w*0.05){
+      ctx.fillRect(x,h*0.18,w*0.035,h*0.04);
+    }
+    // gate
+    ctx.fillStyle='#3E2723';
+    ctx.beginPath(); ctx.arc(w*0.5,h*0.5,w*0.08,Math.PI,0); ctx.fill();
+    ctx.fillRect(w*0.42,h*0.5,w*0.16,h*0.17);
+    // gate bars
+    ctx.strokeStyle='#5D4037'; ctx.lineWidth=3;
+    for(let x=w*0.43;x<w*0.58;x+=w*0.025){
+      ctx.beginPath(); ctx.moveTo(x,h*0.42); ctx.lineTo(x,h*0.67); ctx.stroke();
+    }
+    // tower windows
+    ctx.fillStyle='#FFF176';
+    ctx.fillRect(w*0.17,h*0.32,w*0.04,h*0.05);
+    ctx.fillRect(w*0.79,h*0.32,w*0.04,h*0.05);
+    ctx.fillRect(w*0.17,h*0.45,w*0.04,h*0.05);
+    ctx.fillRect(w*0.79,h*0.45,w*0.04,h*0.05);
+    // wall windows
+    ctx.fillRect(w*0.28,h*0.42,w*0.05,h*0.06);
+    ctx.fillRect(w*0.67,h*0.42,w*0.05,h*0.06);
+    // flags
+    ctx.strokeStyle='#5D4037'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(w*0.19,h*0.08); ctx.lineTo(w*0.19,h*0.01); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(w*0.81,h*0.08); ctx.lineTo(w*0.81,h*0.01); ctx.stroke();
+    ctx.fillStyle='#F44336';
+    ctx.beginPath(); ctx.moveTo(w*0.19,h*0.01); ctx.lineTo(w*0.25,h*0.03); ctx.lineTo(w*0.19,h*0.05); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(w*0.81,h*0.01); ctx.lineTo(w*0.87,h*0.03); ctx.lineTo(w*0.81,h*0.05); ctx.closePath(); ctx.fill();
+    // moat
+    ctx.fillStyle='#0277BD';
+    ctx.beginPath(); ctx.ellipse(w*0.5,h*0.7,w*0.38,h*0.06,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.15)';
+    ctx.beginPath(); ctx.ellipse(w*0.5,h*0.69,w*0.2,h*0.02,0,0,Math.PI*2); ctx.fill();
+    // bridge
+    ctx.fillStyle='#5D4037'; ctx.fillRect(w*0.44,h*0.64,w*0.12,h*0.06);
+    ctx.strokeStyle='#4E342E'; ctx.lineWidth=2;
+    ctx.strokeRect(w*0.44,h*0.64,w*0.12,h*0.06);
+    // path to bridge
+    ctx.fillStyle='#795548';
+    ctx.beginPath(); ctx.moveTo(w*0.44,h*0.7); ctx.lineTo(w*0.56,h*0.7);
+    ctx.lineTo(w*0.58,h); ctx.lineTo(w*0.42,h); ctx.closePath(); ctx.fill();
+  }
+
+  /* ── AQUARIUM SCENE ── */
+  function drawAquarium(ctx,w,h){
+    // deep water gradient
+    let g=ctx.createLinearGradient(0,0,0,h);
+    g.addColorStop(0,'#0097A7'); g.addColorStop(0.3,'#00838F'); g.addColorStop(0.7,'#006064'); g.addColorStop(1,'#004D40');
+    ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+    // light rays from top
+    ctx.fillStyle='rgba(255,255,255,0.04)';
+    for(let i=0;i<5;i++){
+      ctx.beginPath();
+      let lx=w*(0.15+i*0.18);
+      ctx.moveTo(lx,0); ctx.lineTo(lx+w*0.08,0);
+      ctx.lineTo(lx+w*0.15,h); ctx.lineTo(lx-w*0.05,h);
+      ctx.closePath(); ctx.fill();
+    }
+    // sandy bottom
+    let sg=ctx.createLinearGradient(0,h*0.82,0,h);
+    sg.addColorStop(0,'#FFE0B2'); sg.addColorStop(1,'#FFCC80');
+    ctx.fillStyle=sg;
+    ctx.beginPath(); ctx.moveTo(0,h*0.85);
+    ctx.quadraticCurveTo(w*0.2,h*0.82,w*0.4,h*0.86);
+    ctx.quadraticCurveTo(w*0.6,h*0.9,w*0.8,h*0.84);
+    ctx.quadraticCurveTo(w*0.95,h*0.82,w,h*0.86);
+    ctx.lineTo(w,h); ctx.lineTo(0,h); ctx.closePath(); ctx.fill();
+    // coral
+    ctx.fillStyle='#F44336';
+    ctx.beginPath(); ctx.moveTo(w*0.15,h*0.85); ctx.lineTo(w*0.13,h*0.72); ctx.lineTo(w*0.16,h*0.76); ctx.lineTo(w*0.18,h*0.7); ctx.lineTo(w*0.2,h*0.78); ctx.lineTo(w*0.22,h*0.73); ctx.lineTo(w*0.21,h*0.85); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#FF7043';
+    ctx.beginPath(); ctx.moveTo(w*0.72,h*0.84); ctx.lineTo(w*0.7,h*0.74); ctx.lineTo(w*0.73,h*0.78); ctx.lineTo(w*0.76,h*0.72); ctx.lineTo(w*0.78,h*0.76); ctx.lineTo(w*0.8,h*0.84); ctx.closePath(); ctx.fill();
+    // seaweed
+    ctx.strokeStyle='#4CAF50'; ctx.lineWidth=4; ctx.lineCap='round';
+    [[0.35,0.86],[0.6,0.88],[0.9,0.85]].forEach(([sx,sy])=>{
+      ctx.beginPath(); ctx.moveTo(w*sx,h*sy);
+      ctx.quadraticCurveTo(w*(sx-0.03),h*(sy-0.12),w*(sx+0.02),h*(sy-0.2));
+      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(w*sx,h*sy);
+      ctx.quadraticCurveTo(w*(sx+0.04),h*(sy-0.08),w*(sx-0.01),h*(sy-0.16));
+      ctx.stroke();
+    });
+    // big fish (orange)
+    ctx.fillStyle='#FF9800';
+    ctx.beginPath(); ctx.ellipse(w*0.3,h*0.35,w*0.08,h*0.04,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(w*0.22,h*0.35); ctx.lineTo(w*0.16,h*0.3); ctx.lineTo(w*0.16,h*0.4); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#E65100'; ctx.beginPath(); ctx.ellipse(w*0.3,h*0.33,w*0.06,h*0.015,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#FFF'; ctx.beginPath(); ctx.arc(w*0.35,h*0.34,w*0.015,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(w*0.355,h*0.34,w*0.007,0,Math.PI*2); ctx.fill();
+    // blue fish 
+    ctx.fillStyle='#42A5F5';
+    ctx.beginPath(); ctx.ellipse(w*0.7,h*0.25,w*0.06,h*0.03,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(w*0.64,h*0.25); ctx.lineTo(w*0.59,h*0.21); ctx.lineTo(w*0.59,h*0.29); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#1565C0'; ctx.beginPath(); ctx.ellipse(w*0.7,h*0.235,w*0.04,h*0.01,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#FFF'; ctx.beginPath(); ctx.arc(w*0.74,h*0.245,w*0.01,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(w*0.743,h*0.245,w*0.005,0,Math.PI*2); ctx.fill();
+    // small yellow fish school
+    ctx.fillStyle='#FFEE58';
+    [[0.5,0.5],[0.55,0.47],[0.48,0.54],[0.58,0.52],[0.53,0.56]].forEach(([fx,fy])=>{
+      ctx.beginPath(); ctx.ellipse(w*fx,h*fy,w*0.025,h*0.012,0,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#F9A825';
+      ctx.beginPath(); ctx.moveTo(w*(fx-0.025),h*fy); ctx.lineTo(w*(fx-0.04),h*(fy-0.015)); ctx.lineTo(w*(fx-0.04),h*(fy+0.015)); ctx.closePath(); ctx.fill();
+      ctx.fillStyle='#FFEE58';
+    });
+    // jellyfish
+    ctx.fillStyle='rgba(206,147,216,0.7)';
+    ctx.beginPath(); ctx.arc(w*0.82,h*0.45,w*0.04,Math.PI,0); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(w*0.82,h*0.45,w*0.04,h*0.015,0,0,Math.PI); ctx.fill();
+    ctx.strokeStyle='rgba(186,104,200,0.6)'; ctx.lineWidth=2;
+    for(let i=0;i<4;i++){
+      ctx.beginPath(); ctx.moveTo(w*(0.79+i*0.02),h*0.46);
+      ctx.quadraticCurveTo(w*(0.79+i*0.02-0.01),h*0.52,w*(0.79+i*0.02+0.005),h*0.56); ctx.stroke();
+    }
+    // bubbles
+    ctx.strokeStyle='rgba(255,255,255,0.4)'; ctx.lineWidth=1;
+    [[0.25,0.2,8],[0.4,0.15,5],[0.65,0.12,6],[0.8,0.18,4],[0.15,0.45,3],[0.55,0.32,4],[0.85,0.35,5]].forEach(([bx,by,r])=>{
+      ctx.beginPath(); ctx.arc(w*bx,h*by,r,0,Math.PI*2); ctx.stroke();
+      ctx.fillStyle='rgba(255,255,255,0.08)'; ctx.fill();
+    });
+    // shells on sand
+    ctx.fillStyle='#FFAB91';
+    ctx.beginPath(); ctx.arc(w*0.45,h*0.92,w*0.015,Math.PI,0); ctx.fill();
+    ctx.fillStyle='#CE93D8';
+    ctx.beginPath(); ctx.arc(w*0.55,h*0.94,w*0.012,Math.PI,0); ctx.fill();
+    // starfish
+    ctx.fillStyle='#FF7043';
+    function drawStar5(sx,sy,r){
+      ctx.beginPath();
+      for(let i=0;i<10;i++){
+        let rad=i%2===0?r:r*0.4;
+        let angle=(Math.PI*2/10)*i-Math.PI/2;
+        ctx.lineTo(sx+Math.cos(angle)*rad,sy+Math.sin(angle)*rad);
+      }
+      ctx.closePath(); ctx.fill();
+    }
+    drawStar5(w*0.3,h*0.92,w*0.02);
+  }
+
+  /* ── SNOWMAN SCENE ── */
+  function drawSnowman(ctx,w,h){
+    // night sky
+    let g=ctx.createLinearGradient(0,0,0,h*0.6);
+    g.addColorStop(0,'#1A237E'); g.addColorStop(1,'#3949AB');
+    ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+    // stars
+    let seed=63;
+    function srand(){seed=(seed*16807)%2147483647;return(seed-1)/2147483646;}
+    for(let i=0;i<50;i++){
+      ctx.fillStyle=`rgba(255,255,255,${0.3+srand()*0.7})`;
+      ctx.beginPath(); ctx.arc(srand()*w,srand()*h*0.5,srand()*2+0.5,0,Math.PI*2); ctx.fill();
+    }
+    // moon
+    ctx.fillStyle='#FFF9C4'; ctx.beginPath(); ctx.arc(w*0.82,h*0.1,w*0.06,0,Math.PI*2); ctx.fill();
+    // snow ground
+    let sg=ctx.createLinearGradient(0,h*0.55,0,h);
+    sg.addColorStop(0,'#E3F2FD'); sg.addColorStop(1,'#BBDEFB');
+    ctx.fillStyle=sg; ctx.fillRect(0,h*0.55,w,h*0.45);
+    // snow hills
+    ctx.fillStyle='#E8EAF6';
+    ctx.beginPath(); ctx.moveTo(0,h*0.6);
+    ctx.quadraticCurveTo(w*0.2,h*0.52,w*0.4,h*0.58);
+    ctx.quadraticCurveTo(w*0.6,h*0.64,w*0.8,h*0.55);
+    ctx.quadraticCurveTo(w*0.95,h*0.5,w,h*0.57);
+    ctx.lineTo(w,h*0.6); ctx.lineTo(0,h*0.6); ctx.closePath(); ctx.fill();
+    // pine trees background
+    function drawPineTree(tx,ty,s){
+      ctx.fillStyle='#2E7D32';
+      for(let i=0;i<3;i++){
+        ctx.beginPath();
+        ctx.moveTo(tx-s*(0.15-i*0.03),ty-s*i*0.15);
+        ctx.lineTo(tx,ty-s*(0.22+i*0.15));
+        ctx.lineTo(tx+s*(0.15-i*0.03),ty-s*i*0.15);
+        ctx.closePath(); ctx.fill();
+      }
+      ctx.fillStyle='#5D4037'; ctx.fillRect(tx-s*0.03,ty,s*0.06,s*0.12);
+      // snow on tree
+      ctx.fillStyle='#E8EAF6';
+      ctx.beginPath(); ctx.arc(tx,ty-s*0.52,s*0.06,0,Math.PI*2); ctx.fill();
+    }
+    drawPineTree(w*0.1,h*0.6,h*0.3);
+    drawPineTree(w*0.85,h*0.58,h*0.35);
+    drawPineTree(w*0.92,h*0.62,h*0.22);
+    // SNOWMAN - bottom ball
+    ctx.fillStyle='#FFFFFF';
+    ctx.beginPath(); ctx.arc(w*0.5,h*0.72,w*0.14,0,Math.PI*2); ctx.fill();
+    // middle ball
+    ctx.beginPath(); ctx.arc(w*0.5,h*0.54,w*0.1,0,Math.PI*2); ctx.fill();
+    // head
+    ctx.beginPath(); ctx.arc(w*0.5,h*0.4,w*0.075,0,Math.PI*2); ctx.fill();
+    // shadow on balls
+    ctx.fillStyle='rgba(144,164,174,0.15)';
+    ctx.beginPath(); ctx.arc(w*0.5,h*0.74,w*0.13,0,Math.PI); ctx.fill();
+    ctx.beginPath(); ctx.arc(w*0.5,h*0.56,w*0.09,0,Math.PI); ctx.fill();
+    // hat
+    ctx.fillStyle='#212121';
+    ctx.fillRect(w*0.44,h*0.32,w*0.12,h*0.04);
+    ctx.fillRect(w*0.46,h*0.2,w*0.08,h*0.13);
+    ctx.fillStyle='#F44336';
+    ctx.fillRect(w*0.46,h*0.3,w*0.08,h*0.03);
+    // eyes
+    ctx.fillStyle='#212121';
+    ctx.beginPath(); ctx.arc(w*0.475,h*0.39,w*0.012,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(w*0.525,h*0.39,w*0.012,0,Math.PI*2); ctx.fill();
+    // carrot nose
+    ctx.fillStyle='#FF9800';
+    ctx.beginPath(); ctx.moveTo(w*0.5,h*0.41); ctx.lineTo(w*0.56,h*0.425); ctx.lineTo(w*0.5,h*0.44); ctx.closePath(); ctx.fill();
+    // mouth (dots)
+    ctx.fillStyle='#212121';
+    [[0.47,0.46],[0.485,0.468],[0.5,0.47],[0.515,0.468],[0.53,0.46]].forEach(([mx,my])=>{
+      ctx.beginPath(); ctx.arc(w*mx,h*my,w*0.006,0,Math.PI*2); ctx.fill();
+    });
+    // buttons
+    [[0.5,0.5],[0.5,0.55],[0.5,0.6]].forEach(([bx,by])=>{
+      ctx.beginPath(); ctx.arc(w*bx,h*by,w*0.01,0,Math.PI*2); ctx.fill();
+    });
+    // scarf
+    ctx.fillStyle='#F44336';
+    ctx.beginPath(); ctx.ellipse(w*0.5,h*0.465,w*0.085,h*0.015,0,0,Math.PI*2); ctx.fill();
+    ctx.fillRect(w*0.53,h*0.465,w*0.03,h*0.06);
+    ctx.fillStyle='#C62828';
+    for(let i=0;i<3;i++) ctx.fillRect(w*0.53,h*(0.47+i*0.018),w*0.03,h*0.006);
+    // stick arms
+    ctx.strokeStyle='#5D4037'; ctx.lineWidth=3; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(w*0.4,h*0.52); ctx.lineTo(w*0.25,h*0.44); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(w*0.25,h*0.44); ctx.lineTo(w*0.22,h*0.4); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(w*0.25,h*0.44); ctx.lineTo(w*0.23,h*0.47); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(w*0.6,h*0.52); ctx.lineTo(w*0.75,h*0.44); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(w*0.75,h*0.44); ctx.lineTo(w*0.78,h*0.4); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(w*0.75,h*0.44); ctx.lineTo(w*0.77,h*0.47); ctx.stroke();
+    // snowflakes
+    ctx.fillStyle='rgba(255,255,255,0.7)';
+    for(let i=0;i<30;i++){
+      ctx.beginPath(); ctx.arc(srand()*w,srand()*h,srand()*3+1,0,Math.PI*2); ctx.fill();
+    }
+  }
+
+  /* ── LIGHTHOUSE SCENE ── */
+  function drawLighthouse(ctx,w,h){
+    // sunset sky
+    let g=ctx.createLinearGradient(0,0,0,h*0.55);
+    g.addColorStop(0,'#1A237E'); g.addColorStop(0.3,'#E65100'); g.addColorStop(0.5,'#FF8F00'); g.addColorStop(1,'#FFE082');
+    ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+    // sun on horizon
+    ctx.fillStyle='#FF6D00'; ctx.beginPath(); ctx.arc(w*0.35,h*0.48,w*0.1,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#FFD600'; ctx.beginPath(); ctx.arc(w*0.35,h*0.48,w*0.065,0,Math.PI*2); ctx.fill();
+    // stars (upper sky)
+    let seed=88;
+    function srand(){seed=(seed*16807)%2147483647;return(seed-1)/2147483646;}
+    for(let i=0;i<20;i++){
+      ctx.fillStyle=`rgba(255,255,255,${0.2+srand()*0.5})`;
+      ctx.beginPath(); ctx.arc(srand()*w,srand()*h*0.25,srand()*1.5+0.5,0,Math.PI*2); ctx.fill();
+    }
+    // ocean
+    let og=ctx.createLinearGradient(0,h*0.48,0,h);
+    og.addColorStop(0,'#01579B'); og.addColorStop(0.3,'#0277BD'); og.addColorStop(1,'#01579B');
+    ctx.fillStyle=og; ctx.fillRect(0,h*0.48,w,h*0.52);
+    // sun reflection on water
+    ctx.fillStyle='rgba(255,183,77,0.2)';
+    ctx.beginPath(); ctx.moveTo(w*0.2,h*0.48); ctx.lineTo(w*0.5,h*0.48);
+    ctx.lineTo(w*0.55,h); ctx.lineTo(w*0.15,h); ctx.closePath(); ctx.fill();
+    // waves
+    ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=1.5;
+    for(let y=h*0.52;y<h;y+=h*0.05){
+      ctx.beginPath(); for(let x=0;x<w;x+=2){ctx.lineTo(x,y+Math.sin(x*0.03+y)*h*0.01);} ctx.stroke();
+    }
+    // rocky cliff
+    ctx.fillStyle='#455A64';
+    ctx.beginPath(); ctx.moveTo(w*0.55,h*0.48);
+    ctx.lineTo(w*0.6,h*0.35); ctx.lineTo(w*0.95,h*0.4);
+    ctx.lineTo(w,h*0.48); ctx.lineTo(w,h*0.55);
+    ctx.quadraticCurveTo(w*0.8,h*0.52,w*0.55,h*0.55);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#37474F';
+    ctx.beginPath(); ctx.moveTo(w*0.58,h*0.48); ctx.lineTo(w*0.62,h*0.42); ctx.lineTo(w*0.7,h*0.44); ctx.lineTo(w*0.65,h*0.5); ctx.closePath(); ctx.fill();
+    // lighthouse tower
+    ctx.fillStyle='#ECEFF1';
+    ctx.beginPath();
+    ctx.moveTo(w*0.72,h*0.38); ctx.lineTo(w*0.75,h*0.12);
+    ctx.lineTo(w*0.82,h*0.12); ctx.lineTo(w*0.85,h*0.38);
+    ctx.closePath(); ctx.fill();
+    // red stripes
+    ctx.fillStyle='#D32F2F';
+    for(let y=h*0.16;y<h*0.38;y+=h*0.065){
+      let t1=(y-h*0.12)/(h*0.26), t2=(y+h*0.032-h*0.12)/(h*0.26);
+      let lx1=w*0.75-(w*0.75-w*0.72)*t1, rx1=w*0.82+(w*0.85-w*0.82)*t1;
+      let lx2=w*0.75-(w*0.75-w*0.72)*t2, rx2=w*0.82+(w*0.85-w*0.82)*t2;
+      ctx.beginPath(); ctx.moveTo(lx1,y); ctx.lineTo(rx1,y);
+      ctx.lineTo(rx2,y+h*0.032); ctx.lineTo(lx2,y+h*0.032); ctx.closePath(); ctx.fill();
+    }
+    // lantern room
+    ctx.fillStyle='#37474F';
+    ctx.fillRect(w*0.74,h*0.1,w*0.09,h*0.03);
+    ctx.fillRect(w*0.73,h*0.09,w*0.11,h*0.015);
+    // light glow
+    let lg2=ctx.createRadialGradient(w*0.785,h*0.1,0,w*0.785,h*0.1,w*0.2);
+    lg2.addColorStop(0,'rgba(255,235,59,0.6)'); lg2.addColorStop(0.3,'rgba(255,235,59,0.15)'); lg2.addColorStop(1,'transparent');
+    ctx.fillStyle=lg2; ctx.fillRect(w*0.5,0,w*0.5,h*0.35);
+    // light beam
+    ctx.fillStyle='rgba(255,235,59,0.08)';
+    ctx.beginPath(); ctx.moveTo(w*0.785,h*0.1);
+    ctx.lineTo(w*0.4,h*0.0); ctx.lineTo(w*0.3,h*0.15); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(w*0.785,h*0.1);
+    ctx.lineTo(0,h*0.2); ctx.lineTo(0,h*0.35); ctx.closePath(); ctx.fill();
+    // lantern glass (yellow)
+    ctx.fillStyle='#FFEE58';
+    ctx.fillRect(w*0.76,h*0.1,w*0.05,h*0.025);
+    // roof/cap
+    ctx.fillStyle='#D32F2F';
+    ctx.beginPath(); ctx.moveTo(w*0.73,h*0.09); ctx.lineTo(w*0.785,h*0.04); ctx.lineTo(w*0.84,h*0.09); ctx.closePath(); ctx.fill();
+    // door
+    ctx.fillStyle='#5D4037';
+    ctx.beginPath(); ctx.arc(w*0.785,h*0.34,w*0.025,Math.PI,0); ctx.fill();
+    ctx.fillRect(w*0.76,h*0.34,w*0.05,h*0.04);
+    // boat in water
+    ctx.fillStyle='#ECEFF1';
+    ctx.beginPath(); ctx.moveTo(w*0.15,h*0.62); ctx.lineTo(w*0.28,h*0.62);
+    ctx.lineTo(w*0.26,h*0.65); ctx.lineTo(w*0.17,h*0.65); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle='#795548'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(w*0.215,h*0.62); ctx.lineTo(w*0.215,h*0.56); ctx.stroke();
+    ctx.fillStyle='#FFF'; ctx.beginPath(); ctx.moveTo(w*0.215,h*0.56); ctx.lineTo(w*0.25,h*0.6); ctx.lineTo(w*0.215,h*0.6); ctx.closePath(); ctx.fill();
+  }
+
+  /* ── CITYSCAPE SCENE ── */
+  function drawCityscape(ctx,w,h){
+    // dusk sky
+    let g=ctx.createLinearGradient(0,0,0,h*0.55);
+    g.addColorStop(0,'#0D47A1'); g.addColorStop(0.4,'#1565C0'); g.addColorStop(0.7,'#E65100'); g.addColorStop(1,'#FF8F00');
+    ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+    // stars
+    let seed=51;
+    function srand(){seed=(seed*16807)%2147483647;return(seed-1)/2147483646;}
+    for(let i=0;i<35;i++){
+      ctx.fillStyle=`rgba(255,255,255,${0.2+srand()*0.6})`;
+      ctx.beginPath(); ctx.arc(srand()*w,srand()*h*0.35,srand()*1.5+0.5,0,Math.PI*2); ctx.fill();
+    }
+    // moon
+    ctx.fillStyle='#FFF9C4'; ctx.beginPath(); ctx.arc(w*0.15,h*0.1,w*0.04,0,Math.PI*2); ctx.fill();
+    // ground
+    ctx.fillStyle='#263238'; ctx.fillRect(0,h*0.55,w,h*0.45);
+    // road
+    ctx.fillStyle='#37474F'; ctx.fillRect(0,h*0.78,w,h*0.22);
+    ctx.strokeStyle='#FFD54F'; ctx.lineWidth=3; ctx.setLineDash([15,12]);
+    ctx.beginPath(); ctx.moveTo(0,h*0.89); ctx.lineTo(w,h*0.89); ctx.stroke();
+    ctx.setLineDash([]);
+    // buildings from left to right
+    function drawBuilding(bx,bw,bh,color,winColor){
+      ctx.fillStyle=color;
+      ctx.fillRect(bx,h*0.55-bh,bw,bh+h*0.23);
+      // windows
+      ctx.fillStyle=winColor;
+      let ww=bw*0.15, wh=bh*0.06, gap=bw*0.08;
+      let cols=Math.floor((bw-gap)/(ww+gap));
+      let rows=Math.floor(bh*0.85/(wh+wh*0.8));
+      for(let r=0;r<rows;r++){
+        for(let c=0;c<cols;c++){
+          let wx=bx+gap+c*(ww+gap);
+          let wy=(h*0.55-bh)+bh*0.1+r*(wh+wh*0.8);
+          if(srand()>0.3) ctx.fillStyle=winColor; else ctx.fillStyle='#263238';
+          ctx.fillRect(wx,wy,ww,wh);
+        }
+      }
+    }
+    drawBuilding(w*0.02,w*0.12,h*0.28,'#455A64','#FFF176');
+    drawBuilding(w*0.15,w*0.1,h*0.38,'#37474F','#FFCC80');
+    drawBuilding(w*0.26,w*0.13,h*0.22,'#546E7A','#B3E5FC');
+    drawBuilding(w*0.4,w*0.08,h*0.42,'#455A64','#FFF176');
+    drawBuilding(w*0.49,w*0.15,h*0.32,'#37474F','#FFCC80');
+    drawBuilding(w*0.65,w*0.1,h*0.45,'#546E7A','#FFF176');
+    drawBuilding(w*0.76,w*0.12,h*0.25,'#455A64','#B3E5FC');
+    drawBuilding(w*0.89,w*0.1,h*0.35,'#37474F','#FFCC80');
+    // tall tower/spire
+    ctx.fillStyle='#455A64';
+    ctx.fillRect(w*0.42,h*0.08,w*0.04,h*0.05);
+    ctx.fillStyle='#F44336';
+    ctx.beginPath(); ctx.arc(w*0.44,h*0.08,w*0.006,0,Math.PI*2); ctx.fill();
+    // antenna on tall building
+    ctx.strokeStyle='#78909C'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(w*0.7,h*0.1); ctx.lineTo(w*0.7,h*0.05); ctx.stroke();
+    ctx.fillStyle='#F44336'; ctx.beginPath(); ctx.arc(w*0.7,h*0.05,3,0,Math.PI*2); ctx.fill();
+    // sidewalk
+    ctx.fillStyle='#78909C'; ctx.fillRect(0,h*0.76,w,h*0.03);
+    // street lamps
+    [[0.1],[0.4],[0.7],[0.95]].forEach(([lx])=>{
+      ctx.strokeStyle='#455A64'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.moveTo(w*lx,h*0.78); ctx.lineTo(w*lx,h*0.66); ctx.stroke();
+      ctx.fillStyle='#FFEE58';
+      ctx.beginPath(); ctx.arc(w*lx,h*0.65,w*0.015,0,Math.PI*2); ctx.fill();
+      // lamp glow
+      let lg3=ctx.createRadialGradient(w*lx,h*0.65,0,w*lx,h*0.65,w*0.06);
+      lg3.addColorStop(0,'rgba(255,238,88,0.25)'); lg3.addColorStop(1,'transparent');
+      ctx.fillStyle=lg3; ctx.beginPath(); ctx.arc(w*lx,h*0.65,w*0.06,0,Math.PI*2); ctx.fill();
+    });
+    // car on road
+    ctx.fillStyle='#E53935';
+    ctx.beginPath(); ctx.roundRect(w*0.55,h*0.84,w*0.12,h*0.06,4); ctx.fill();
+    ctx.fillStyle='#BBDEFB';
+    ctx.fillRect(w*0.58,h*0.845,w*0.035,h*0.025);
+    ctx.fillRect(w*0.625,h*0.845,w*0.03,h*0.025);
+    ctx.fillStyle='#212121';
+    ctx.beginPath(); ctx.arc(w*0.58,h*0.9,w*0.015,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(w*0.65,h*0.9,w*0.015,0,Math.PI*2); ctx.fill();
+    // headlights
+    ctx.fillStyle='#FFF176';
+    ctx.fillRect(w*0.665,h*0.86,w*0.008,h*0.015);
+    // taillights
+    ctx.fillStyle='#F44336';
+    ctx.fillRect(w*0.552,h*0.86,w*0.008,h*0.015);
   }
 
   /* ── GENERATE THE FULL IMAGE ── */
